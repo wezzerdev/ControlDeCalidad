@@ -254,10 +254,13 @@ export function Dashboard() {
           <CardContent className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dataEnsayo}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis dataKey="name" className="text-muted-foreground" />
+                <YAxis className="text-muted-foreground" />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                  itemStyle={{ color: 'var(--foreground)' }}
+                />
                 <Legend />
                 <Line type="monotone" dataKey="Conforme" stroke="#8884d8" strokeWidth={2} />
               </LineChart>

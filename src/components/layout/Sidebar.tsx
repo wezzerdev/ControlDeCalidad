@@ -99,7 +99,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {!isCollapsed && <span className="text-xl font-bold text-primary truncate">ConstruLab</span>}
           {isCollapsed && <span className="text-xl font-bold text-primary">CL</span>}
           
-          <button onClick={onClose} className="lg:hidden text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={onClose} 
+            className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground active:bg-accent rounded-full transition-colors"
+            aria-label="Cerrar menú"
+          >
             <X className="h-6 w-6" />
           </button>
 
