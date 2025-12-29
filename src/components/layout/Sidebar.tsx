@@ -98,14 +98,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           isCollapsed ? "justify-center" : "justify-between"
         )}>
           {!isCollapsed && (
-            <Link to="/" className="text-xl font-bold text-primary truncate hover:text-primary/80 transition-colors">
+            <a href="/" className="text-xl font-bold text-primary truncate hover:text-primary/80 transition-colors">
               ConstruLab
-            </Link>
+            </a>
           )}
           {isCollapsed && (
-            <Link to="/" className="text-xl font-bold text-primary hover:text-primary/80 transition-colors">
+            <a href="/" className="text-xl font-bold text-primary hover:text-primary/80 transition-colors">
               CL
-            </Link>
+            </a>
           )}
           
           <button 

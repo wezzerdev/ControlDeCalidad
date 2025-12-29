@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -23,7 +23,9 @@ export default function Home() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {user ? (
+            {loading ? (
+               <div className="h-10 w-32 bg-muted animate-pulse rounded-md"></div>
+            ) : user ? (
               <Link to="/app/dashboard">
                 <Button>
                   <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -57,7 +59,9 @@ export default function Home() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card">
             <div className="px-4 py-6 space-y-4 flex flex-col">
-              {user ? (
+              {loading ? (
+                 <div className="h-10 w-full bg-muted animate-pulse rounded-md"></div>
+              ) : user ? (
                 <Link to="/app/dashboard" onClick={() => setMobileMenuOpen(false)}>
                   <Button className="w-full justify-center">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
