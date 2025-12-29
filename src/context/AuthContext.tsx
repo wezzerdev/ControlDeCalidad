@@ -138,18 +138,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, pass: string) => {
     try {
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password: pass,
       });
 
       if (error) {
+        setLoading(false);
         return { success: false, error: error.message };
       }
 
-      // Profile fetching is handled by onAuthStateChange
+      if (data.user) {
+        await fetchProfile(data.user.id, data.user.email!);
+      }
+
       return { success: true };
     } catch (err) {
+      setLoading(false);
       return { success: false, error: 'Error de conexión' };
     }
   };
