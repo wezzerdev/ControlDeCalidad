@@ -97,8 +97,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           "flex items-center h-16 px-4 border-b border-border",
           isCollapsed ? "justify-center" : "justify-between"
         )}>
-          {!isCollapsed && <span className="text-xl font-bold text-primary truncate">ConstruLab</span>}
-          {isCollapsed && <span className="text-xl font-bold text-primary">CL</span>}
+          {!isCollapsed && (
+            <Link to="/" className="text-xl font-bold text-primary truncate hover:text-primary/80 transition-colors">
+              ConstruLab
+            </Link>
+          )}
+          {isCollapsed && (
+            <Link to="/" className="text-xl font-bold text-primary hover:text-primary/80 transition-colors">
+              CL
+            </Link>
+          )}
           
           <button 
             onClick={onClose} 

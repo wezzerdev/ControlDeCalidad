@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { BarChart2, FileText, Shield, ArrowRight, CheckCircle2, Lock, Server, Users, HelpCircle, Menu, X } from 'lucide-react';
+import { BarChart2, FileText, Shield, ArrowRight, CheckCircle2, Lock, Server, Users, HelpCircle, Menu, X, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto">
@@ -20,12 +23,23 @@ export default function Home() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="ghost">Iniciar Sesión</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Comenzar Gratis</Button>
-            </Link>
+            {user ? (
+              <Link to="/app/dashboard">
+                <Button>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  Ir al Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost">Iniciar Sesión</Button>
+                </Link>
+                <Link to="/register">
+                  <Button>Comenzar Gratis</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -43,12 +57,23 @@ export default function Home() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-card">
             <div className="px-4 py-6 space-y-4 flex flex-col">
-              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-center">Iniciar Sesión</Button>
-              </Link>
-              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                <Button className="w-full justify-center">Comenzar Gratis</Button>
-              </Link>
+              {user ? (
+                <Link to="/app/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                  <Button className="w-full justify-center">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    Ir al Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-center">Iniciar Sesión</Button>
+                  </Link>
+                  <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full justify-center">Comenzar Gratis</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}
