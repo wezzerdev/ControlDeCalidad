@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { BarChart2, FileText, Shield, ArrowRight, CheckCircle2, Lock, Server, Users, HelpCircle } from 'lucide-react';
+import { BarChart2, FileText, Shield, ArrowRight, CheckCircle2, Lock, Server, Users, HelpCircle, Menu, X } from 'lucide-react';
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background overflow-y-auto">
       {/* Navbar */}
@@ -15,6 +17,8 @@ export default function Home() {
             </div>
             <span className="text-xl font-bold text-foreground">ConstruLab SaaS</span>
           </div>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/login">
               <Button variant="ghost">Iniciar Sesión</Button>
@@ -23,7 +27,31 @@ export default function Home() {
               <Button>Comenzar Gratis</Button>
             </Link>
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-foreground p-2 rounded-md hover:bg-accent"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            <div className="px-4 py-6 space-y-4 flex flex-col">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-center">Iniciar Sesión</Button>
+              </Link>
+              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                <Button className="w-full justify-center">Comenzar Gratis</Button>
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
