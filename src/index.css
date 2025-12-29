@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme */
+    --background: #F4F4F4; /* Blanco Humo - Page Background */
+    --foreground: #101010; /* Negro Azabache (Text) */
+
+    --card: #FFFFFF; /* Blanco - Card Background */
+    --card-foreground: #101010;
+
+    --popover: #FFFFFF;
+    --popover-foreground: #101010;
+
+    --primary: #25A418; /* Verde Bosque */
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #FFFFFF;
+    --secondary-foreground: #101010;
+
+    --muted: #F4F4F4;
+    --muted-foreground: #555555; /* Gris Davy */
+
+    --accent: #F4F4F4;
+    --accent-foreground: #25A418;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #e5e5e5; /* Standard light gray for borders in light mode for better contrast than white/offwhite */
+    --input: #e5e5e5;
+    --ring: #25A418;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Theme */
+    --background: #0B0B0B; /* Negro Azabache (Deepest) - Page Background */
+    --foreground: #F4F4F4; /* Blanco Humo - Text */
+
+    --card: #101010; /* Negro Azabache (Slightly lighter) - Card/Sidebar Background */
+    --card-foreground: #F4F4F4;
+
+    --popover: #101010;
+    --popover-foreground: #F4F4F4;
+
+    --primary: #25A418; /* Verde Bosque */
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #222222; /* Negro Carbón - Secondary Elements */
+    --secondary-foreground: #F4F4F4;
+
+    --muted: #222222;
+    --muted-foreground: #9ca3af; /* Lightened for readability, #555555 is too dark on black */
+
+    --accent: #222222;
+    --accent-foreground: #25A418;
+
+    --destructive: #7f1d1d;
+    --destructive-foreground: #F4F4F4;
+
+    --border: #222222; /* Negro Carbón - Borders */
+    --input: #222222;
+    --ring: #25A418;
+  }
+}
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full overflow-hidden m-0 p-0;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
