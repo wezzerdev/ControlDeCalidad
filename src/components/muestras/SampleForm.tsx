@@ -71,9 +71,14 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
         // If norm has compatible types, create an option for each
         if (n.tiposMuestraCompatibles && n.tiposMuestraCompatibles.length > 0) {
             n.tiposMuestraCompatibles.forEach(cat => {
+                // Check if the name already includes the category (from DB rename or otherwise)
+                // We use a flexible check to avoid double labeling
+                const hasCategoryInName = cleanName.toLowerCase().includes(cat.toLowerCase());
+                const label = hasCategoryInName ? cleanName : `${cleanName} [${cat}]`;
+                
                 options.push({
                     id: `${n.id}-${cat}`, // Unique key
-                    label: cleanName,
+                    label: label,
                     category: cat,
                     normId: n.id
                 });
