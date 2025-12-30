@@ -42,6 +42,12 @@ export default function Verification() {
     // If auth is loading, wait
     if (authLoading) return;
     
+    // Check for theme preference or system setting here if needed
+    // For now, let's assume the user might have a preference stored or we default
+    // We can add a class to the root element if needed, but the main layout handles it usually.
+    // Since this page is outside MainLayout, we might need to handle theme manually if we want to persist it.
+    // However, for public access, default behavior (light/dark system) via Tailwind 'dark' class on html is standard.
+    
     if (!user) {
         setLoading(false);
         return; // Render login prompt
@@ -133,7 +139,7 @@ export default function Verification() {
 
   if (authLoading || (loading && user)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -142,8 +148,8 @@ export default function Verification() {
   // Not logged in view
   if (!user) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <Card className="w-full max-w-md shadow-xl border-none">
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+            <Card className="w-full max-w-md shadow-xl border-border bg-card text-card-foreground">
                 <CardHeader className="text-center pb-2">
                     <div className="mx-auto bg-primary/10 p-4 rounded-full w-fit mb-4 animate-pulse">
                         <Lock className="h-8 w-8 text-primary" />
@@ -160,7 +166,7 @@ export default function Verification() {
                     >
                         Iniciar Sesión Segura
                     </Button>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                         Sistema de Verificación ConstruLab
                     </p>
                 </CardContent>
@@ -172,11 +178,11 @@ export default function Verification() {
   // Error view
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <Card className="w-full max-w-md border-red-200 shadow-lg">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-destructive/50 shadow-lg bg-card text-card-foreground">
           <CardHeader className="text-center">
-            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-            <CardTitle className="text-red-700">No Encontrado</CardTitle>
+            <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
+            <CardTitle className="text-destructive">No Encontrado</CardTitle>
           </CardHeader>
           <CardContent className="text-center text-muted-foreground">
             {error || 'El elemento solicitado no existe o no tienes permisos.'}
@@ -200,9 +206,9 @@ export default function Verification() {
     };
     
     return (
-      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-8">
         <div className="max-w-4xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 print:hidden">
-            <Button variant="ghost" onClick={() => setShowCertificate(false)} className="text-gray-600 hover:text-gray-900">
+            <Button variant="ghost" onClick={() => setShowCertificate(false)} className="text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Resumen
             </Button>
             <div className="flex gap-2">
@@ -227,11 +233,11 @@ export default function Verification() {
 
   // Main Summary View
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
       {/* Top Navigation Bar */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 px-4 py-3 shadow-sm">
+      <div className="bg-card border-b border-border sticky top-0 z-10 px-4 py-3 shadow-sm">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
-             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
              </Button>
              <div className="flex items-center gap-2">
@@ -253,36 +259,36 @@ export default function Verification() {
                 <img 
                     src={companyInfo.logoUrl} 
                     alt={companyInfo.name} 
-                    className="h-24 w-auto mx-auto mb-4 object-contain drop-shadow-sm bg-white dark:bg-gray-800 p-2 rounded-lg"
+                    className="h-24 w-auto mx-auto mb-4 object-contain drop-shadow-sm bg-white p-2 rounded-lg"
                 />
             )}
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
                 {companyInfo?.name || 'Laboratorio de Construcción'}
             </h1>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-2">
                 <MapPin className="h-3 w-3" />
                 <span>{companyInfo?.city || 'México'}</span>
             </div>
         </div>
 
         {/* Verification Card */}
-        <Card className="border-t-4 border-t-green-500 shadow-xl overflow-hidden dark:bg-gray-800 dark:border-gray-700">
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 border-b border-green-100 dark:border-green-900/30 flex items-center justify-center gap-2">
-             <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-             <span className="font-bold text-green-700 dark:text-green-300 uppercase tracking-wide text-sm">Documento Auténtico</span>
+        <Card className="border-t-4 border-t-primary shadow-xl overflow-hidden bg-card text-card-foreground">
+          <div className="bg-primary/10 p-4 border-b border-primary/20 flex items-center justify-center gap-2">
+             <CheckCircle className="h-5 w-5 text-primary" />
+             <span className="font-bold text-primary uppercase tracking-wide text-sm">Documento Auténtico</span>
           </div>
 
           <CardContent className="p-0">
             <div className="p-6 space-y-6">
                 {/* Main ID Section */}
-                <div className="text-center pb-6 border-b border-gray-100 dark:border-gray-700">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Identificador</p>
-                    <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 font-mono">{data.codigo}</h2>
+                <div className="text-center pb-6 border-b border-border">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Identificador</p>
+                    <h2 className="text-3xl font-bold font-mono tracking-tight">{data.codigo}</h2>
                     <div className="mt-3 flex justify-center">
                         <span className={cn(
                             "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide",
-                            data.estado === 'aprobado' ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : 
-                            data.estado === 'rechazado' ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
+                            data.estado === 'aprobado' ? "bg-primary/10 text-primary" : 
+                            data.estado === 'rechazado' ? "bg-destructive/10 text-destructive" : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
                         )}>
                             {data.estado}
                         </span>
@@ -293,39 +299,39 @@ export default function Verification() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div className="flex items-start gap-3">
-                            <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase">Proyecto</p>
-                                <p className="font-semibold text-gray-900 dark:text-gray-200">{data.proyectos?.nombre}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{data.proyectos?.cliente}</p>
+                                <p className="text-xs font-medium text-muted-foreground uppercase">Proyecto</p>
+                                <p className="font-semibold">{data.proyectos?.nombre}</p>
+                                <p className="text-xs text-muted-foreground">{data.proyectos?.cliente}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3">
-                            <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase">Norma</p>
-                                <p className="font-medium text-gray-900 dark:text-gray-200">{data.normas?.codigo}</p>
+                                <p className="text-xs font-medium text-muted-foreground uppercase">Norma</p>
+                                <p className="font-medium">{data.normas?.codigo}</p>
                             </div>
                         </div>
                     </div>
                     
                     <div className="space-y-4">
                          <div className="flex items-start gap-3">
-                            <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
                             <div>
-                                <p className="text-xs font-medium text-gray-500 uppercase">Fechas</p>
-                                <p className="text-sm text-gray-700 dark:text-gray-300"><span className="font-medium">Recepción:</span> {new Date(data.fecha_recepcion).toLocaleDateString()}</p>
+                                <p className="text-xs font-medium text-muted-foreground uppercase">Fechas</p>
+                                <p className="text-sm"><span className="font-medium text-muted-foreground">Recepción:</span> {new Date(data.fecha_recepcion).toLocaleDateString()}</p>
                                 {data.fecha_ensayo && (
-                                    <p className="text-sm text-gray-700 dark:text-gray-300"><span className="font-medium">Ensayo:</span> {new Date(data.fecha_ensayo).toLocaleDateString()}</p>
+                                    <p className="text-sm"><span className="font-medium text-muted-foreground">Ensayo:</span> {new Date(data.fecha_ensayo).toLocaleDateString()}</p>
                                 )}
                             </div>
                         </div>
                         {data.ubicacion && (
                             <div className="flex items-start gap-3">
-                                <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
+                                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
                                 <div>
-                                    <p className="text-xs font-medium text-gray-500 uppercase">Ubicación en Obra</p>
-                                    <p className="text-sm text-gray-900 dark:text-gray-200">{data.ubicacion}</p>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase">Ubicación en Obra</p>
+                                    <p className="text-sm">{data.ubicacion}</p>
                                 </div>
                             </div>
                         )}
@@ -334,17 +340,17 @@ export default function Verification() {
 
                 {/* Results Section */}
                 {data.resultados && (
-                  <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                  <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="h-4 w-4 text-primary" />
-                        <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100 uppercase">Resultados Clave</h3>
+                        <h3 className="font-bold text-sm uppercase">Resultados Clave</h3>
                     </div>
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-100 dark:border-gray-700">
+                    <div className="bg-muted/50 rounded-lg p-4 border border-border">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                           {Object.entries(data.resultados).slice(0, 6).map(([key, value]) => (
-                            <div key={key} className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-gray-700 last:border-0 border-dashed">
-                              <span className="text-xs text-gray-500 dark:text-gray-400 truncate mr-2 capitalize">{key.replace(/_/g, ' ')}</span>
-                              <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">{String(value)}</span>
+                            <div key={key} className="flex justify-between items-center py-1 border-b border-border last:border-0 border-dashed">
+                              <span className="text-xs text-muted-foreground truncate mr-2 capitalize">{key.replace(/_/g, ' ')}</span>
+                              <span className="font-mono text-sm font-medium">{String(value)}</span>
                             </div>
                           ))}
                       </div>
@@ -354,21 +360,21 @@ export default function Verification() {
             </div>
             
             {/* Actions Footer */}
-            <div className="bg-gray-50 dark:bg-gray-900/30 p-6 border-t border-gray-100 dark:border-gray-700">
+            <div className="bg-muted/30 p-6 border-t border-border">
                 {(data.estado === 'aprobado' || type === 'certificado') ? (
                      type === 'certificado' ? (
-                        <Button onClick={() => setShowCertificate(true)} className="w-full shadow-md py-6">
+                        <Button onClick={() => setShowCertificate(true)} className="w-full shadow-md py-6 text-base font-semibold" variant="primary">
                             <FileText className="mr-2 h-5 w-5" /> Ver Certificado Original
                         </Button>
                     ) : (
                         <Link to={`/verify/certificado/${id}`} className="block">
-                             <Button className="w-full shadow-md py-6" variant="primary">
+                             <Button className="w-full shadow-md py-6 text-base font-semibold" variant="primary">
                                 <CheckCircle className="mr-2 h-5 w-5" /> Ver Certificado Digital
                             </Button>
                         </Link>
                     )
                 ) : (
-                    <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-yellow-700 dark:text-yellow-400 text-sm">
+                    <div className="text-center p-3 bg-yellow-500/10 rounded-md text-yellow-600 dark:text-yellow-400 text-sm font-medium border border-yellow-500/20">
                         La muestra aún no ha sido aprobada para emitir certificado.
                     </div>
                 )}
@@ -377,13 +383,13 @@ export default function Verification() {
         </Card>
 
         {/* Platform Footer */}
-        <div className="text-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Validación segura garantizada por</p>
-          <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full border dark:border-gray-600 shadow-sm">
-             <span className="font-bold text-primary-600 dark:text-primary-400">ConstruLab SaaS</span>
-             <span className="text-[10px] bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-1.5 py-0.5 rounded font-medium">v1.0</span>
+        <div className="text-center mt-12 pt-8 border-t border-border">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Validación segura garantizada por</p>
+          <div className="inline-flex items-center gap-2 bg-card px-4 py-2 rounded-full border border-border shadow-sm">
+             <span className="font-bold text-primary">ConstruLab SaaS</span>
+             <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">v1.0</span>
           </div>
-          <p className="mt-4 text-[10px] text-gray-400">© {new Date().getFullYear()} Todos los derechos reservados.</p>
+          <p className="mt-4 text-[10px] text-muted-foreground">© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>
       </div>
     </div>
