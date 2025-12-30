@@ -434,9 +434,15 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
          )}
       </div>
 
-      <div className="mt-4 text-[8px] text-gray-400 text-center">
-        <p>Este informe no podrá ser reproducido total o parcialmente sin la autorización por escrito de {companyInfo.name}.</p>
-        <p>Generado electrónicamente el: {new Date().toLocaleString()}</p>
+      <div className="mt-4 flex justify-between items-end text-[8px] text-gray-400">
+        <p className="text-center flex-1">
+            Este informe no podrá ser reproducido total o parcialmente sin la autorización por escrito de {companyInfo.name}.
+            <br />
+            Generado electrónicamente el: {new Date().toLocaleString()}
+        </p>
+        <div className="print:block hidden absolute bottom-[15mm] right-[15mm]">
+            <span className="counter"></span>
+        </div>
       </div>
     </div>
   );
@@ -456,9 +462,45 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
+            /* Page Numbering Logic */
+            body {
+                counter-reset: page;
+            }
+            .page-number::after {
+                counter-increment: page;
+                content: "Página " counter(page);
+            }
+            /* Since we are rendering a single long div, browser pagination is automatic but css counters are per element or page box. 
+               CSS Paged Media Module support is limited in browsers. 
+               A robust way for simple browsers is putting page number in fixed footer? 
+               But fixed footer overlaps content.
+               
+               Let's try the standard approach for repeating footer if supported, 
+               OR just a single "Page X of Y" if we can calculate it (hard in JS without rendering).
+               
+               Actually, standard browsers (Chrome) add header/footer with page numbers if the user checks the option.
+               But the user explicitly asked to put it in the footer manually "por que si no cabe todo el certificado".
+               
+               Since we have a continuous layout, we can't easily know where page breaks are in JS.
+               However, we can try to force a footer on every page using table-footer-group trick or fixed position.
+               Fixed position repeats on every page.
+            */
+            #print-footer {
+                position: fixed;
+                bottom: 10mm;
+                right: 15mm;
+                font-size: 8px;
+                color: #9ca3af;
+            }
           }
         `}
       </style>
+      
+      {/* Repeated Footer for Page Numbers */}
+      <div id="print-footer" className="hidden print:block">
+         Página <span className="page-number"></span>
+      </div>
+
       <div className={cn(
         "bg-white text-black shadow-lg mx-auto flex flex-col relative",
         // Dimensions: Fixed for screen to simulate letter, explicit for print to match page size
