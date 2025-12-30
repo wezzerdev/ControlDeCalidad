@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Muestra, Proyecto, Norma } from '../../data/mockData';
 import { Button } from '../common/Button';
 import { ArrowLeft, Printer, Download } from 'lucide-react';
@@ -16,6 +16,7 @@ interface CertificadoViewProps {
 export function CertificadoView({ muestra, proyecto, norma, onBack }: CertificadoViewProps) {
   const { companyInfo } = useCompany();
   const { templates } = useData();
+  const componentRef = useRef<HTMLDivElement>(null);
   
   // Get active template
   const activeTemplate = templates.find(t => t.isDefault) || templates[0] || {
@@ -29,6 +30,10 @@ export function CertificadoView({ muestra, proyecto, norma, onBack }: Certificad
     isDefault: true
   };
 
+  const handlePrint = () => {
+      window.print();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center print:hidden">
@@ -37,24 +42,26 @@ export function CertificadoView({ muestra, proyecto, norma, onBack }: Certificad
           Volver
         </Button>
         <div className="space-x-2">
-          <Button variant="outline" onClick={() => window.print()}>
+          <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" />
             Imprimir
           </Button>
-          <Button disabled>
+          <Button onClick={handlePrint}>
             <Download className="mr-2 h-4 w-4" />
-            Descargar PDF
+            Guardar como PDF
           </Button>
         </div>
       </div>
 
-      <CertificateTemplate
-        muestra={muestra}
-        proyecto={proyecto}
-        norma={norma}
-        companyInfo={companyInfo}
-        template={activeTemplate}
-      />
+      <div ref={componentRef} className="print:w-full">
+        <CertificateTemplate
+            muestra={muestra}
+            proyecto={proyecto}
+            norma={norma}
+            companyInfo={companyInfo}
+            template={activeTemplate}
+        />
+      </div>
     </div>
   );
 }

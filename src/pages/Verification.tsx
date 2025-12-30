@@ -14,7 +14,8 @@ import {
   Building2,
   ArrowLeft,
   ExternalLink,
-  User
+  User,
+  Printer
 } from 'lucide-react';
 import { CertificateTemplate } from '../components/certificados/CertificateTemplate';
 import { CompanyInfo } from '../context/CompanyContext';
@@ -216,17 +217,19 @@ export default function Verification() {
                     Ir al Sistema
                 </Button>
                 <Button onClick={() => window.print()} className="shadow-md">
-                    Imprimir / PDF
+                    <Printer className="mr-2 h-4 w-4" /> Imprimir / PDF
                 </Button>
             </div>
         </div>
-        <CertificateTemplate
-          muestra={data}
-          proyecto={data.proyectos}
-          norma={norma}
-          companyInfo={companyInfo}
-          template={template}
-        />
+        <div className="print:w-full">
+            <CertificateTemplate
+              muestra={data}
+              proyecto={data.proyectos}
+              norma={norma}
+              companyInfo={companyInfo}
+              template={template}
+            />
+        </div>
       </div>
     );
   }
