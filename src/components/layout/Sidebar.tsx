@@ -50,6 +50,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: 'Normas', href: '/app/normas', icon: FileText, roles: ['administrador', 'gerente'] },
         { name: 'Inventarios', href: '/app/inventarios', icon: Package, permission: 'access_inventarios' },
         { name: 'Auditoría', href: '/app/auditoria', icon: ShieldAlert, permission: 'access_auditoria' },
+        { name: 'Logs', href: '/app/activity-log', icon: FileText, permission: 'access_auditoria' }, // Visible for admins
       ]
     },
     {
