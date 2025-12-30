@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/common/Card';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Lock } from 'lucide-react';
 import { CertificateTemplate } from '../components/certificados/CertificateTemplate';
 import { CompanyInfo } from '../context/CompanyContext';
 import { CertificateTemplate as TemplateConfig } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/common/Button';
 
 export default function Verification() {
   const { type, id } = useParams();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,13 +24,26 @@ export default function Verification() {
   const [template, setTemplate] = useState<TemplateConfig | null>(null);
 
   useEffect(() => {
+    // If auth is loading, wait
+    if (authLoading) return;
+
+    // If not authenticated, we can either redirect immediately or show a "Login Required" screen.
+    // The user requested: "que pudieran autenticarce con su cuenta"
+    // Let's check permissions after fetching or attempt fetch and fail if RLS blocks it.
+    // But to provide a better UX, we should check if user is logged in first.
+    
+    if (!user) {
+        setLoading(false);
+        return; // Render login prompt
+    }
+
     const verifyItem = async () => {
       if (!id || !type) return;
 
       try {
         if (type === 'muestra' || type === 'certificado') {
-          // Use RPC for public verification to be safe, or direct select if policy allows
-          // For now, we try direct select. If it fails due to RLS, we need the RPC.
+          // Attempt to fetch. If RLS is set to "authenticated" only, this works for logged in users.
+          // RLS should handle "related to them" logic (e.g., project assignment).
           const { data: result, error } = await supabase
             .from('muestras')
             .select(`
@@ -33,7 +52,7 @@ export default function Verification() {
               proyectos (nombre, cliente)
             `)
             .eq('id', id)
-            .maybeSingle(); // Use maybeSingle to avoid 406 error if not found immediately
+            .maybeSingle(); 
 
           if (error) {
              console.error("Verification fetch error:", error);
@@ -41,7 +60,7 @@ export default function Verification() {
           }
           
           if (!result) {
-             throw new Error('Elemento no encontrado');
+             throw new Error('Elemento no encontrado o no tiene permisos para verlo.');
           }
           
           setData({
@@ -66,7 +85,7 @@ export default function Verification() {
              // Default template
              setTemplate({
                id: 'default',
-               name: 'Classic',
+               name: 'Default',
                layout: 'classic',
                primaryColor: '#000000',
                showWatermark: true,
@@ -87,14 +106,46 @@ export default function Verification() {
     };
 
     verifyItem();
-  }, [type, id]);
+  }, [type, id, user, authLoading]);
 
-  if (loading) {
+  if (authLoading || (loading && user)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If not logged in, show login required screen
+  if (!user) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                    <div className="mx-auto bg-primary/10 p-3 rounded-full w-fit mb-4">
+                        <Lock className="h-8 w-8 text-primary" />
+                    </div>
+                    <CardTitle>Autenticación Requerida</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center space-y-4">
+                    <p className="text-muted-foreground">
+                        Para ver este certificado o muestra, necesitas iniciar sesión con tu cuenta de ConstruLab.
+                    </p>
+                    <div className="pt-2">
+                        <Button 
+                            className="w-full" 
+                            onClick={() => navigate('/login', { state: { from: location } })}
+                        >
+                            Iniciar Sesión
+                        </Button>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                        Solo personal autorizado o clientes asignados pueden ver esta información.
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+      );
   }
 
   if (error || !data) {
@@ -103,10 +154,15 @@ export default function Verification() {
         <Card className="w-full max-w-md border-red-200">
           <CardHeader className="text-center">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-            <CardTitle className="text-red-700">Verificación Fallida</CardTitle>
+            <CardTitle className="text-red-700">Acceso Denegado / No Encontrado</CardTitle>
           </CardHeader>
           <CardContent className="text-center text-muted-foreground">
-            {error || 'El elemento solicitado no existe en nuestros registros.'}
+            {error || 'El elemento solicitado no existe o no tienes permisos para verlo.'}
+            <div className="mt-4">
+                <Button variant="outline" onClick={() => navigate('/app/dashboard')}>
+                    Ir al Dashboard
+                </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
