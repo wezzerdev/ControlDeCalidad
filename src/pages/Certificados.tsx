@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { CertificadoList } from '../components/certificados/CertificadoList';
@@ -21,6 +21,63 @@ export default function Certificados() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Logic to get available test types (Rubros) dynamically
+  const availableTestTypes = useMemo(() => {
+    // 1. Determine base norms: All norms OR norms assigned to selected project
+    let relevantNorms = normas;
+    
+    if (filterProject !== 'all') {
+        const project = proyectos.find(p => p.id === filterProject);
+        if (project && project.normasAsignadas) {
+            relevantNorms = normas.filter(n => project.normasAsignadas.includes(n.id));
+        } else {
+            relevantNorms = [];
+        }
+    }
+
+    const options: { id: string, label: string, normId: string, category: string }[] = [];
+
+    relevantNorms.forEach(n => {
+        // Clean up norm name
+        const cleanName = n.nombre
+          .replace(/^(NMX-[A-Z]-\d+-ONNCCE|ASTM [A-Z]\d+|ACI \d+) - /, '') 
+          .replace(/^Industria de la construcción - /, '')
+          .replace(/^Concreto - /, '')
+          .replace(/^Cementos hidráulicos - /, '')
+          .trim();
+
+        // If norm has compatible types, create an option for each
+        if (n.tiposMuestraCompatibles && n.tiposMuestraCompatibles.length > 0) {
+            n.tiposMuestraCompatibles.forEach(cat => {
+                const hasCategoryInName = cleanName.toLowerCase().includes(cat.toLowerCase());
+                const label = hasCategoryInName ? cleanName : `${cleanName} [${cat}]`;
+                
+                // For the filter value, we'll use a composite key or just norm ID if unique context isn't needed for ID
+                // But since we want to filter by "Type", we should ideally filter by Norm ID.
+                // However, one norm ID can support multiple types.
+                // If the user selects "Densidad [Agregados]", they want that norm context.
+                // Since our Muestras only store normId, filtering by just normId might be ambiguous if the norm is shared.
+                // But for now, let's use a composite value to distinguish in the dropdown, and parse it for filtering.
+                options.push({
+                    id: `${n.id}|${cat}`, 
+                    label: label,
+                    normId: n.id,
+                    category: cat
+                });
+            });
+        } else {
+             options.push({
+                id: `${n.id}|Otro`,
+                label: cleanName,
+                normId: n.id,
+                category: 'Otro'
+            });
+        }
+    });
+    
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }, [normas, proyectos, filterProject]);
 
   // Filter samples based on user role and assigned projects AND UI filters
   const filteredMuestras = muestras
@@ -46,17 +103,37 @@ export default function Certificados() {
     // 3. Project Filter
     const matchesProject = filterProject === 'all' || muestra.proyectoId === filterProject;
 
-    // 4. Status Filter (Usually certificates are for approved/completed, but we can filter by status too)
+    // 4. Status Filter
     const matchesStatus = filterStatus === 'all' || muestra.estado === filterStatus;
 
-    // 5. Type Filter
+    // 5. Type Filter (Rubro / Ensayo)
     let matchesType = true;
     if (filterType !== 'all') {
-        const norma = normas.find(n => n.id === muestra.normaId);
-        if (norma && norma.tiposMuestraCompatibles) {
-            matchesType = norma.tiposMuestraCompatibles.includes(filterType as SampleTypeCategory);
-        } else {
+        const [targetNormId, targetCategory] = filterType.split('|');
+        
+        // Primary check: Norm ID must match
+        if (muestra.normaId !== targetNormId) {
             matchesType = false;
+        } else {
+            // Secondary check: If the norm is shared (e.g. Concreto/Agregados), 
+            // we should try to match the category if possible.
+            // Muestras have 'tipoMaterial' string. We can check if it contains the category name?
+            // Or if the norm only supports ONE category, we assume it matches.
+            const norm = normas.find(n => n.id === targetNormId);
+            if (norm && norm.tiposMuestraCompatibles && norm.tiposMuestraCompatibles.length > 1) {
+                // Shared norm: Try to match category in 'tipoMaterial' or strict check if we had a category field
+                // For now, heuristic: Check if tipoMaterial contains category name (case insensitive)
+                if (targetCategory !== 'Otro' && !muestra.tipoMaterial.toLowerCase().includes(targetCategory.toLowerCase())) {
+                    // This might be too strict if user entered arbitrary material name.
+                    // But usually SampleForm auto-fills tipoMaterial with category name.
+                    // Let's accept it if it matches, OR if we want to be lenient, we can just filter by Norm ID.
+                    // But user specifically asked for "rubros".
+                    // Let's stick to Norm ID check primarily, but if shared, use heuristic.
+                    // Actually, if I select "Densidad [Agregados]" and show "Densidad [Concreto]" samples, it's confusing.
+                    // So we try to filter.
+                     matchesType = muestra.tipoMaterial.toLowerCase().includes(targetCategory.toLowerCase());
+                }
+            }
         }
     }
 
@@ -167,19 +244,16 @@ export default function Certificados() {
               </select>
             </div>
           </div>
-           <div className="w-full md:w-48">
+          <div className="w-full md:w-48">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">Todos los Tipos</option>
-              <option value="Concreto">Concreto</option>
-              <option value="Suelo">Suelo</option>
-              <option value="Agregados">Agregados</option>
-              <option value="Acero">Acero</option>
-              <option value="Asfalto">Asfalto</option>
-              <option value="Otro">Otro</option>
+              {availableTestTypes.map(type => (
+                <option key={type.id} value={type.id}>{type.label}</option>
+              ))}
             </select>
           </div>
           <div className="w-full md:w-40">
