@@ -72,7 +72,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
             n.tiposMuestraCompatibles.forEach(cat => {
                 options.push({
                     id: `${n.id}-${cat}`, // Unique key
-                    label: `${cat} - ${cleanName} (${code})`,
+                    label: `${cleanName} (${code})`,
                     category: cat,
                     normId: n.id
                 });
@@ -81,7 +81,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
              // Fallback if no types defined
              options.push({
                 id: n.id,
-                label: `General - ${cleanName} (${code})`,
+                label: `${cleanName} (${code})`,
                 category: 'Otro' as SampleTypeCategory,
                 normId: n.id
             });
