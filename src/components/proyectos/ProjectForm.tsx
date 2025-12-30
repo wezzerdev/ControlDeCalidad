@@ -111,6 +111,11 @@ export function ProjectForm({ initialData, normas, onSave, onCancel }: ProjectFo
     onCancel();
   };
 
+  const filteredNormas = normas.filter(norma => 
+    norma.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    norma.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
