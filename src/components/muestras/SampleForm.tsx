@@ -106,9 +106,10 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       const project = proyectos.find(p => p.id === formData.proyectoId);
       if (project) {
         // Filter norms assigned to project AND compatible with selected category
+        // If a norm has no specific compatible types defined (empty), we assume it's available for selection (fallback)
         const filtered = normas.filter(n => 
           project.normasAsignadas.includes(n.id) && 
-          n.tiposMuestraCompatibles?.includes(selectedCategory as SampleTypeCategory)
+          (!n.tiposMuestraCompatibles || n.tiposMuestraCompatibles.length === 0 || n.tiposMuestraCompatibles.includes(selectedCategory as SampleTypeCategory))
         );
         setAvailableNormas(filtered);
         
