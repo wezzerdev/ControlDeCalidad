@@ -42,36 +42,76 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   const [showNormaReview, setShowNormaReview] = useState(false);
   const [selectedNormaDetails, setSelectedNormaDetails] = useState<Norma | null>(null);
 
-  // Filter available categories based on Project's assigned norms
-  const availableCategories = useMemo(() => {
-    if (!formData.proyectoId) return SAMPLE_CATEGORIES;
+  // Create options for "Tipo de Muestra" based on Project's assigned norms
+  // Format: "Category - Norm Name"
+  const availableTestTypes = useMemo(() => {
+    if (!formData.proyectoId) return [];
     
     const project = proyectos.find(p => p.id === formData.proyectoId);
     if (!project || !project.normasAsignadas || project.normasAsignadas.length === 0) {
-      return SAMPLE_CATEGORIES;
+      return [];
     }
 
     const projectNorms = normas.filter(n => project.normasAsignadas.includes(n.id));
-    const compatibleTypes = new Set<SampleTypeCategory>();
-    
-    projectNorms.forEach(n => {
-      n.tiposMuestraCompatibles?.forEach(t => compatibleTypes.add(t));
-    });
+    const options: { id: string, label: string, category: SampleTypeCategory, normId: string }[] = [];
 
-    if (compatibleTypes.size > 0) {
-        return SAMPLE_CATEGORIES.filter(c => compatibleTypes.has(c));
-    }
+    projectNorms.forEach(n => {
+        // If norm has compatible types, create an option for each
+        if (n.tiposMuestraCompatibles && n.tiposMuestraCompatibles.length > 0) {
+            n.tiposMuestraCompatibles.forEach(cat => {
+                options.push({
+                    id: `${n.id}-${cat}`, // Unique key
+                    label: `${cat} - ${n.nombre}`,
+                    category: cat,
+                    normId: n.id
+                });
+            });
+        } else {
+             // Fallback if no types defined
+             options.push({
+                id: n.id,
+                label: `General - ${n.nombre}`,
+                category: 'Otro' as SampleTypeCategory,
+                normId: n.id
+            });
+        }
+    });
     
-    return SAMPLE_CATEGORIES;
+    return options;
   }, [formData.proyectoId, proyectos, normas]);
 
-  // Reset category if not in available
-  useEffect(() => {
-    if (selectedCategory && !availableCategories.includes(selectedCategory)) {
-        setSelectedCategory('');
-    }
-  }, [availableCategories, selectedCategory]);
+  // Handle specific test selection
+  const handleTestTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const selectedOptionId = e.target.value;
+      if (!selectedOptionId) {
+          setSelectedCategory('');
+          setFormData(prev => ({ ...prev, normaId: '' }));
+          return;
+      }
 
+      const selectedOption = availableTestTypes.find(opt => opt.id === selectedOptionId);
+      if (selectedOption) {
+          setSelectedCategory(selectedOption.category);
+          setFormData(prev => ({ 
+              ...prev, 
+              normaId: selectedOption.normId,
+              // Auto-fill material description if empty
+              tipoMaterial: !prev.tipoMaterial ? selectedOption.category : prev.tipoMaterial 
+          }));
+      }
+  };
+
+  // Keep compatibility with manual category selection if needed, but primary is now TestType
+  // We can derive "selectedTestType" value from current category + normId
+  const currentTestTypeValue = useMemo(() => {
+      if (formData.normaId && selectedCategory) {
+          const match = availableTestTypes.find(opt => opt.normId === formData.normaId && opt.category === selectedCategory);
+          return match ? match.id : '';
+      }
+      return '';
+  }, [formData.normaId, selectedCategory, availableTestTypes]);
+
+  // Update available norms based on Project AND Selected Category (Step 3 logic remains for verification)
   useEffect(() => {
     if (initialData) {
       let location = initialData.ubicacion;
@@ -258,17 +298,17 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">2. Tipo de Muestra</label>
+                      <label className="text-sm font-medium">2. Ensayo / Tipo de Muestra</label>
                       <select
-                        value={selectedCategory}
-                        onChange={handleCategoryChange}
+                        value={currentTestTypeValue}
+                        onChange={handleTestTypeChange}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         required
                         disabled={!formData.proyectoId}
                       >
-                        <option value="">Seleccione Tipo</option>
-                        {availableCategories.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
+                        <option value="">Seleccione Ensayo</option>
+                        {availableTestTypes.map(opt => (
+                          <option key={opt.id} value={opt.id}>{opt.label}</option>
                         ))}
                       </select>
                     </div>
@@ -295,16 +335,17 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                         onChange={handleChange}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         required
-                        disabled={!selectedCategory}
+                        disabled={true} 
                       >
                         <option value="">
                           {!selectedCategory 
-                            ? 'Seleccione primero el tipo de muestra' 
+                            ? 'Seleccione primero el ensayo' 
                             : availableNormas.length === 0 
                               ? 'No hay normas compatibles asignadas al proyecto' 
-                              : 'Seleccione Norma'}
+                              : 'Norma Seleccionada'}
                         </option>
-                        {availableNormas.map(n => (
+                        {/* We still render options so the selected value can be shown properly */}
+                        {normas.map(n => (
                           <option key={n.id} value={n.id}>{n.codigo} - {n.nombre}</option>
                         ))}
                       </select>
