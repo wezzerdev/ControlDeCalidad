@@ -19,11 +19,14 @@ export function CertificadoView({ muestra, proyecto, norma, onBack }: Certificad
   
   // Get active template
   const activeTemplate = templates.find(t => t.isDefault) || templates[0] || {
+    id: 'default',
+    name: 'Default',
     layout: 'classic',
     primaryColor: '#000000',
     showWatermark: true,
     showQr: true,
-    showBorder: true
+    showBorder: true,
+    isDefault: true
   };
 
   return (
