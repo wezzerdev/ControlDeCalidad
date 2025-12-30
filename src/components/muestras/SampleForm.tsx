@@ -42,6 +42,36 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   const [showNormaReview, setShowNormaReview] = useState(false);
   const [selectedNormaDetails, setSelectedNormaDetails] = useState<Norma | null>(null);
 
+  // Filter available categories based on Project's assigned norms
+  const availableCategories = useMemo(() => {
+    if (!formData.proyectoId) return SAMPLE_CATEGORIES;
+    
+    const project = proyectos.find(p => p.id === formData.proyectoId);
+    if (!project || !project.normasAsignadas || project.normasAsignadas.length === 0) {
+      return SAMPLE_CATEGORIES;
+    }
+
+    const projectNorms = normas.filter(n => project.normasAsignadas.includes(n.id));
+    const compatibleTypes = new Set<SampleTypeCategory>();
+    
+    projectNorms.forEach(n => {
+      n.tiposMuestraCompatibles?.forEach(t => compatibleTypes.add(t));
+    });
+
+    if (compatibleTypes.size > 0) {
+        return SAMPLE_CATEGORIES.filter(c => compatibleTypes.has(c));
+    }
+    
+    return SAMPLE_CATEGORIES;
+  }, [formData.proyectoId, proyectos, normas]);
+
+  // Reset category if not in available
+  useEffect(() => {
+    if (selectedCategory && !availableCategories.includes(selectedCategory)) {
+        setSelectedCategory('');
+    }
+  }, [availableCategories, selectedCategory]);
+
   useEffect(() => {
     if (initialData) {
       let location = initialData.ubicacion;
@@ -82,9 +112,16 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
         );
         setAvailableNormas(filtered);
         
-        // Reset selected norma if it's no longer valid
-        if (formData.normaId && !filtered.find(n => n.id === formData.normaId)) {
-          setFormData(prev => ({ ...prev, normaId: '' }));
+        // Auto-select logic: If norms are available and current selection is invalid, select the first one.
+        if (filtered.length > 0) {
+             const currentIsValid = formData.normaId && filtered.find(n => n.id === formData.normaId);
+             if (!currentIsValid) {
+                 setFormData(prev => ({ ...prev, normaId: filtered[0].id }));
+             }
+        } else {
+             if (formData.normaId) {
+                setFormData(prev => ({ ...prev, normaId: '' }));
+             }
         }
       } else {
         setAvailableNormas([]);
@@ -229,7 +266,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                         disabled={!formData.proyectoId}
                       >
                         <option value="">Seleccione Tipo</option>
-                        {SAMPLE_CATEGORIES.map(cat => (
+                        {availableCategories.map(cat => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
                       </select>
