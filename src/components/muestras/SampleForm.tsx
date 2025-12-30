@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X } from 'lucide-react';
+import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X, PlusCircle, Trash2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
@@ -47,6 +47,62 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   // Dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
+
+  // Multi-sample state
+  const [specimenRows, setSpecimenRows] = useState<Record<string, any>[]>([{}]);
+  const [globalResults, setGlobalResults] = useState<Record<string, any>>({});
+  const [isMultiMode, setIsMultiMode] = useState(false);
+
+  // Initialize multi-sample state from initialData
+  useEffect(() => {
+    if (initialData && initialData.resultados) {
+        // Separate global fields from specimen fields
+        // This is tricky without knowing the exact schema used when saving
+        // But we can check for _qty or keys ending in _0, _1 etc.
+        
+        const res = initialData.resultados;
+        const newGlobal: Record<string, any> = {};
+        const newSpecimens: Record<string, any>[] = [];
+        
+        // Simple heuristic: keys with _\d+ suffix are specimen fields
+        // But we need to group them by index.
+        const specimenDataByIndex: Record<number, Record<string, any>> = {};
+        let maxIndex = -1;
+
+        Object.entries(res).forEach(([key, value]) => {
+            const match = key.match(/(.+)_(\d+)$/);
+            if (match) {
+                const fieldId = match[1];
+                const index = parseInt(match[2]);
+                if (!specimenDataByIndex[index]) specimenDataByIndex[index] = {};
+                specimenDataByIndex[index][fieldId] = value;
+                if (index > maxIndex) maxIndex = index;
+            } else {
+                newGlobal[key] = value;
+            }
+        });
+
+        if (maxIndex >= 0) {
+            // Reconstruct array
+            for (let i = 0; i <= maxIndex; i++) {
+                newSpecimens.push(specimenDataByIndex[i] || {});
+            }
+            setSpecimenRows(newSpecimens);
+            setIsMultiMode(true);
+        } else {
+            // Single mode or no data
+            // If explicit multi mode flag exists?
+            if (res._is_multi_implicit) {
+                 setIsMultiMode(true);
+                 if (newSpecimens.length === 0) setSpecimenRows([{}]);
+            } else {
+                 setSpecimenRows([{}]); // Default 1 row
+                 setIsMultiMode(false);
+            }
+        }
+        setGlobalResults(newGlobal);
+    }
+  }, [initialData]);
 
   // Create options for "Tipo de Muestra" based on Project's assigned norms
   // Format: "Category - Norm Name"
@@ -264,13 +320,28 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   };
 
   const handleDynamicFieldChange = (fieldId: string, value: any) => {
+    // This is for Global fields
+    setGlobalResults(prev => ({ ...prev, [fieldId]: value }));
     setFormData(prev => ({
       ...prev,
-      resultados: {
-        ...prev.resultados,
-        [fieldId]: value
-      }
+      resultados: { ...prev.resultados, [fieldId]: value }
     }));
+  };
+
+  const handleSpecimenFieldChange = (index: number, fieldId: string, value: any) => {
+      const newRows = [...specimenRows];
+      newRows[index] = { ...newRows[index], [fieldId]: value };
+      setSpecimenRows(newRows);
+  };
+
+  const addSpecimen = () => {
+      setSpecimenRows([...specimenRows, {}]);
+  };
+
+  const removeSpecimen = (index: number) => {
+      const newRows = [...specimenRows];
+      newRows.splice(index, 1);
+      setSpecimenRows(newRows);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -281,14 +352,69 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       return;
     }
 
+    // Consolidate results
+    const consolidatedResults: Record<string, any> = { ...globalResults };
+    
+    if (isMultiMode || (selectedNormaDetails?.campos.some(c => c.scope === 'specimen'))) {
+        // Save specimen data
+        specimenRows.forEach((row, index) => {
+            Object.entries(row).forEach(([key, val]) => {
+                consolidatedResults[`${key}_${index}`] = val;
+            });
+        });
+        
+        // Try to find quantity field to update automatically
+        const qtyField = selectedNormaDetails?.campos.find(f => 
+            f.id.includes('qty') || 
+            f.nombre.toLowerCase().includes('cantidad') || 
+            f.nombre.toLowerCase().includes('número')
+        );
+        if (qtyField) {
+            consolidatedResults[qtyField.id] = specimenRows.length;
+        } else {
+            // Implicit quantity
+            consolidatedResults['_qty'] = specimenRows.length;
+        }
+        
+        consolidatedResults['_is_multi_implicit'] = true;
+    } else {
+        // Single mode, map first row to base fields if they are in specimenRows (for toggle case)
+        // Actually, if !isMultiMode, we just use globalResults + maybe first row of specimenRows merged flat?
+        // If the norm has NO scopes, we treated them as globalResults via handleDynamicFieldChange.
+        // If the norm HAS scopes, globalResults has globals, and specimenRows[0] has specimens.
+        if (specimenRows.length > 0) {
+             Object.entries(specimenRows[0]).forEach(([key, val]) => {
+                consolidatedResults[key] = val;
+            });
+        }
+    }
+
     // Validate required dynamic fields
     if (selectedNormaDetails && selectedNormaDetails.campos) {
         for (const field of selectedNormaDetails.campos) {
             if (field.esRequerido) {
-                const value = formData.resultados?.[field.id];
-                if (value === undefined || value === '' || value === null) {
-                    addToast(`El campo técnico "${field.nombre}" es requerido.`, 'error');
-                    return;
+                // Check logic:
+                // If field is global: check globalResults
+                // If field is specimen: check ALL specimenRows
+                // If scope undefined: check globalResults (unless isMultiMode, then check rows)
+                
+                const isSpecimenScope = field.scope === 'specimen' || (isMultiMode && !field.scope);
+                
+                if (isSpecimenScope) {
+                    for (let i = 0; i < specimenRows.length; i++) {
+                        const val = specimenRows[i][field.id];
+                        if (val === undefined || val === '' || val === null) {
+                             addToast(`El campo "${field.nombre}" es requerido en el espécimen #${i+1}.`, 'error');
+                             return;
+                        }
+                    }
+                } else {
+                    const val = globalResults[field.id] ?? (specimenRows[0]?.[field.id]); 
+                    // Fallback to row 0 if single mode and stored there
+                    if (val === undefined || val === '' || val === null) {
+                        addToast(`El campo "${field.nombre}" es requerido.`, 'error');
+                        return;
+                    }
                 }
             }
         }
@@ -311,7 +437,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       qrCode: formData.qrCode || '',
       estado: (formData.estado as 'pendiente' | 'en_proceso' | 'aprobado' | 'rechazado') || 'pendiente',
       tecnicoId: user?.id || '',
-      resultados: formData.resultados || {},
+      resultados: consolidatedResults,
       createdAt: initialData?.createdAt || new Date().toISOString()
     };
     onSave(muestraToSave);
@@ -549,54 +675,156 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
 
               {selectedNormaDetails && selectedNormaDetails.campos && selectedNormaDetails.campos.length > 0 && (
                 <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-4 mt-6">
-                    <h3 className="text-sm font-semibold flex items-center text-primary">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Datos Técnicos del Ensayo
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {selectedNormaDetails.campos.map((campo) => (
-                            <div key={campo.id} className="space-y-2">
-                                <label className="text-sm font-medium flex justify-between">
-                                    <span>{campo.nombre}</span>
-                                    {campo.unidad && <span className="text-muted-foreground text-xs">({campo.unidad})</span>}
-                                </label>
-                                
-                                {campo.tipo === 'select' ? (
-                                    <select
-                                        value={String(formData.resultados?.[campo.id] || '')}
-                                        onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value)}
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        required={campo.esRequerido}
-                                    >
-                                        <option value="">Seleccione...</option>
-                                        {campo.opciones?.map(op => (
-                                            <option key={op} value={op}>{op}</option>
-                                        ))}
-                                    </select>
-                                ) : campo.tipo === 'boolean' ? (
-                                    <select
-                                        value={formData.resultados?.[campo.id] === undefined ? '' : String(formData.resultados?.[campo.id])}
-                                        onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value === 'true')}
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                                        required={campo.esRequerido}
-                                    >
-                                        <option value="">Seleccione...</option>
-                                        <option value="true">Sí / Cumple</option>
-                                        <option value="false">No / No Cumple</option>
-                                    </select>
-                                ) : (
-                                    <Input 
-                                        type={campo.tipo === 'number' ? 'number' : 'text'}
-                                        step={campo.tipo === 'number' ? "any" : undefined}
-                                        value={String(formData.resultados?.[campo.id] || '')}
-                                        onChange={(e) => handleDynamicFieldChange(campo.id, campo.tipo === 'number' ? parseFloat(e.target.value) : e.target.value)}
-                                        placeholder={campo.nombre}
-                                        required={campo.esRequerido}
-                                    />
-                                )}
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold flex items-center text-primary">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Datos Técnicos del Ensayo
+                        </h3>
+                        
+                        {!selectedNormaDetails.campos.some(c => c.scope) && (
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs font-medium text-muted-foreground">Múltiples Muestras</label>
+                                <input 
+                                    type="checkbox" 
+                                    checked={isMultiMode} 
+                                    onChange={() => setIsMultiMode(!isMultiMode)}
+                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
                             </div>
-                        ))}
+                        )}
                     </div>
+
+                    {/* Global Fields Section */}
+                    {selectedNormaDetails.campos.some(c => c.scope === 'global' || (!c.scope && !isMultiMode)) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            {selectedNormaDetails.campos
+                                .filter(c => c.scope === 'global' || (!c.scope && !isMultiMode))
+                                .map((campo) => (
+                                <div key={campo.id} className="space-y-2">
+                                    <label className="text-sm font-medium flex justify-between">
+                                        <span>{campo.nombre}</span>
+                                        {campo.unidad && <span className="text-muted-foreground text-xs">({campo.unidad})</span>}
+                                    </label>
+                                    
+                                    {campo.tipo === 'select' ? (
+                                        <select
+                                            value={String(globalResults[campo.id] ?? (specimenRows[0]?.[campo.id] ?? ''))}
+                                            onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value)}
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            required={campo.esRequerido}
+                                        >
+                                            <option value="">Seleccione...</option>
+                                            {campo.opciones?.map(op => (
+                                                <option key={op} value={op}>{op}</option>
+                                            ))}
+                                        </select>
+                                    ) : campo.tipo === 'boolean' ? (
+                                        <select
+                                            value={globalResults[campo.id] === undefined ? (specimenRows[0]?.[campo.id] === undefined ? '' : String(specimenRows[0][campo.id])) : String(globalResults[campo.id])}
+                                            onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value === 'true')}
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                            required={campo.esRequerido}
+                                        >
+                                            <option value="">Seleccione...</option>
+                                            <option value="true">Sí / Cumple</option>
+                                            <option value="false">No / No Cumple</option>
+                                        </select>
+                                    ) : (
+                                        <Input 
+                                            type={campo.tipo === 'number' ? 'number' : 'text'}
+                                            step={campo.tipo === 'number' ? "any" : undefined}
+                                            value={String(globalResults[campo.id] ?? (specimenRows[0]?.[campo.id] ?? ''))}
+                                            onChange={(e) => handleDynamicFieldChange(campo.id, campo.tipo === 'number' ? parseFloat(e.target.value) : e.target.value)}
+                                            placeholder={campo.nombre}
+                                            required={campo.esRequerido}
+                                        />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Specimen Fields Section */}
+                    {(isMultiMode || selectedNormaDetails.campos.some(c => c.scope === 'specimen')) && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between border-b pb-2">
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                    Resultados por Especímen ({specimenRows.length})
+                                </h4>
+                                <Button type="button" size="sm" variant="outline" onClick={addSpecimen} className="h-7 text-xs">
+                                    <PlusCircle className="w-3 h-3 mr-1" /> Agregar
+                                </Button>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                {specimenRows.map((row, index) => (
+                                    <div key={index} className="bg-card border border-border p-3 rounded-md relative group">
+                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button 
+                                                type="button" 
+                                                variant="ghost" 
+                                                size="sm" 
+                                                onClick={() => removeSpecimen(index)}
+                                                className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                                                disabled={specimenRows.length === 1}
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </Button>
+                                        </div>
+                                        <div className="mb-2 text-xs font-bold text-primary">
+                                            #{index + 1}
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {selectedNormaDetails.campos
+                                                .filter(c => c.scope === 'specimen' || (isMultiMode && !c.scope))
+                                                .map((campo) => (
+                                                <div key={campo.id} className="space-y-1">
+                                                    <label className="text-xs font-medium text-muted-foreground truncate block" title={campo.nombre}>
+                                                        {campo.nombre} {campo.unidad && `(${campo.unidad})`}
+                                                    </label>
+                                                    
+                                                    {campo.tipo === 'select' ? (
+                                                        <select
+                                                            value={String(row[campo.id] || '')}
+                                                            onChange={(e) => handleSpecimenFieldChange(index, campo.id, e.target.value)}
+                                                            className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                                            required={campo.esRequerido}
+                                                        >
+                                                            <option value="">...</option>
+                                                            {campo.opciones?.map(op => (
+                                                                <option key={op} value={op}>{op}</option>
+                                                            ))}
+                                                        </select>
+                                                    ) : campo.tipo === 'boolean' ? (
+                                                        <select
+                                                            value={row[campo.id] === undefined ? '' : String(row[campo.id])}
+                                                            onChange={(e) => handleSpecimenFieldChange(index, campo.id, e.target.value === 'true')}
+                                                            className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+                                                            required={campo.esRequerido}
+                                                        >
+                                                            <option value="">...</option>
+                                                            <option value="true">Sí</option>
+                                                            <option value="false">No</option>
+                                                        </select>
+                                                    ) : (
+                                                        <Input 
+                                                            type={campo.tipo === 'number' ? 'number' : 'text'}
+                                                            step={campo.tipo === 'number' ? "any" : undefined}
+                                                            value={String(row[campo.id] || '')}
+                                                            onChange={(e) => handleSpecimenFieldChange(index, campo.id, campo.tipo === 'number' ? parseFloat(e.target.value) : e.target.value)}
+                                                            placeholder={campo.nombre}
+                                                            required={campo.esRequerido}
+                                                            className="h-8 text-xs"
+                                                        />
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
               )}
             </CardContent>
