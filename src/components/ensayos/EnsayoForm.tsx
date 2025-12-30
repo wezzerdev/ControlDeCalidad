@@ -453,7 +453,7 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
                   {isMultiMode && specimenCount === 0 && (
                       <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
                           No hay especímenes registrados. 
-                          <Button variant="link" onClick={addSpecimen}>Agregar uno</Button>
+                          <Button variant="ghost" size="sm" onClick={addSpecimen} className="text-primary hover:text-primary/90 hover:bg-primary/10">Agregar uno</Button>
                       </div>
                   )}
                 </div>
