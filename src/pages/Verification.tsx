@@ -22,6 +22,7 @@ export default function Verification() {
   // States for certificate view
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [template, setTemplate] = useState<TemplateConfig | null>(null);
+  const [showCertificate, setShowCertificate] = useState(false);
 
   useEffect(() => {
     // If auth is loading, wait
@@ -170,7 +171,7 @@ export default function Verification() {
   }
 
   // Render Certificate View
-  if (type === 'certificado' && companyInfo && template) {
+  if (type === 'certificado' && companyInfo && template && showCertificate) {
     const norma = {
         ...data.normas,
         campos: data.normas.campos || [],
@@ -181,9 +182,9 @@ export default function Verification() {
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">
         <div className="max-w-4xl mx-auto mb-4 flex justify-between items-center print:hidden">
             <div className="flex items-center gap-2">
-                <Link to={`/verify/muestra/${id}`} className="text-sm text-gray-500 hover:text-gray-900">
+                <Button variant="ghost" onClick={() => setShowCertificate(false)} className="text-sm text-gray-500 hover:text-gray-900">
                     &larr; Ver Resumen
-                </Link>
+                </Button>
                 <h1 className="text-xl font-bold ml-4">Vista Pública del Certificado</h1>
             </div>
             <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
@@ -219,7 +220,7 @@ export default function Verification() {
               <span className="font-bold text-lg">Elemento Auténtico</span>
             </div>
             <CardTitle className="text-xl">
-              {`Muestra ${data.codigo}`}
+              {type === 'certificado' ? 'Certificado de Calidad' : `Muestra ${data.codigo}`}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               ID: {data.id}
@@ -268,14 +269,23 @@ export default function Verification() {
             )}
 
             {/* Link to Certificate View */}
-            {data.estado === 'aprobado' && (
+            {(data.estado === 'aprobado' || type === 'certificado') && (
                 <div className="mt-6 pt-4 border-t text-center">
-                    <Link 
-                        to={`/verify/certificado/${id}`}
-                        className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 hover:underline"
-                    >
-                        Ver Certificado Digital Completo
-                    </Link>
+                    {type === 'certificado' ? (
+                        <Button 
+                            onClick={() => setShowCertificate(true)}
+                            className="w-full"
+                        >
+                            Ver Documento Original / Imprimir
+                        </Button>
+                    ) : (
+                        <Link 
+                            to={`/verify/certificado/${id}`}
+                            className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 hover:underline"
+                        >
+                            Ver Certificado Digital Completo
+                        </Link>
+                    )}
                 </div>
             )}
           </CardContent>
