@@ -73,16 +73,6 @@ export default function Verification() {
           });
 
           if (type === 'certificado') {
-             // Set default company info for public view since we don't have the context
-             setCompanyInfo({
-               name: 'LABORATORIO DE CONSTRUCCIÓN',
-               address: 'Verificación Digital',
-               city: 'México',
-               phone: '',
-               email: '',
-               planId: 'free'
-             });
-             
              // Default template
              setTemplate({
                id: 'default',
@@ -94,6 +84,35 @@ export default function Verification() {
                showBorder: true,
                isDefault: true
              });
+          }
+
+          // Fetch company info based on tecnico_id (who created the sample)
+          if (result.tecnico_id) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('company_id')
+                .eq('id', result.tecnico_id)
+                .single();
+            
+            if (profile?.company_id) {
+                const { data: company } = await supabase
+                    .from('company_settings')
+                    .select('*')
+                    .eq('id', profile.company_id)
+                    .single();
+                    
+                if (company) {
+                    setCompanyInfo({
+                        name: company.name,
+                        address: company.address || '',
+                        city: company.city || '',
+                        phone: company.phone || '',
+                        email: company.email || '',
+                        logoUrl: company.logo_url,
+                        planId: 'pro'
+                    });
+                }
+            }
           }
         } else {
           throw new Error('Tipo de verificación no soportado');
@@ -209,8 +228,20 @@ export default function Verification() {
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-primary-800">ConstruLab Verificación</h1>
-          <p className="text-muted-foreground">Sistema de Autenticidad Digital</p>
+            {companyInfo?.logoUrl && (
+                <img 
+                    src={companyInfo.logoUrl} 
+                    alt={companyInfo.name} 
+                    className="h-20 w-auto mx-auto mb-4 object-contain"
+                />
+            )}
+            <h1 className="text-2xl font-bold text-gray-900">
+                {companyInfo?.name || 'Laboratorio de Construcción'}
+            </h1>
+            <p className="text-gray-500">
+                {companyInfo?.address && `${companyInfo.address}, `}
+                {companyInfo?.city}
+            </p>
         </div>
 
         <Card className="border-green-500 border-t-4 shadow-lg">
@@ -291,9 +322,10 @@ export default function Verification() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-xs text-muted-foreground mt-8">
-          <p>Este documento es una representación digital de los registros en ConstruLab.</p>
-          <p>© {new Date().getFullYear()} Laboratorio de Construcción SaaS</p>
+        <div className="text-center text-xs text-muted-foreground mt-12 pt-8 border-t border-gray-200">
+          <p className="font-medium">Plataforma tecnológica provista por</p>
+          <p className="font-bold text-primary-600 mt-1">ConstruLab SaaS</p>
+          <p className="mt-2 text-[10px] text-gray-400">© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>
       </div>
     </div>
