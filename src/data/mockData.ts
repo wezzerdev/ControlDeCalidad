@@ -112,6 +112,8 @@ export interface NormaField {
   scope?: 'global' | 'specimen'; // 'global' = one value for test, 'specimen' = one value per specimen
 }
 
+export type SampleTypeCategory = 'Concreto' | 'Suelo' | 'Acero' | 'Agregados' | 'Asfalto' | 'Otro';
+
 export interface Norma {
   id: string;
   codigo: string;
@@ -122,6 +124,8 @@ export interface Norma {
   activa: boolean;
   creadaPor: string;
   createdAt: string;
+  // New field for relationship
+  tiposMuestraCompatibles: SampleTypeCategory[];
 }
 
 export const mockNormas: Norma[] = [
@@ -134,6 +138,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-01T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f1',
@@ -163,6 +168,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-05T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_aci_qty',
@@ -255,6 +261,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-10T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_c161_place',
@@ -286,6 +293,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-10T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_c083_qty',
@@ -351,6 +359,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-10T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_c156_rev',
@@ -383,6 +392,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-10T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_c109_method',
@@ -418,6 +428,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Agregados', 'Concreto'],
     campos: [
       { id: 'f_c077_mesh', nombre: 'Tamaño de Malla', tipo: 'text', esRequerido: true },
       { id: 'f_c077_ret', nombre: '% Retenido', tipo: 'number', unidad: '%', esRequerido: true },
@@ -435,6 +446,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Agregados', 'Concreto'],
     campos: [
       { id: 'f_c164_dry', nombre: 'Peso Seco', tipo: 'number', unidad: 'g', esRequerido: true },
       { id: 'f_c164_sat', nombre: 'Peso Saturado', tipo: 'number', unidad: 'g', esRequerido: true },
@@ -453,6 +465,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Suelo', 'Terracerías' as any],
     campos: [
       { id: 'f_c416_opt', nombre: 'Humedad Óptima', tipo: 'number', unidad: '%', esRequerido: true },
       { id: 'f_c416_max', nombre: 'Densidad Máxima', tipo: 'number', unidad: 'kg/m³', esRequerido: true },
@@ -516,6 +529,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Acero'],
     campos: [
       { id: 'f_b113_diam', nombre: 'Diámetro', tipo: 'number', unidad: 'mm', esRequerido: true },
       { id: 'f_b113_angle', nombre: 'Ángulo de Doblado', tipo: 'number', unidad: 'grados', limiteMin: 180, esRequerido: true },
@@ -532,6 +546,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Acero'],
     campos: [
       { id: 'f_e415_c', nombre: '% Carbono', tipo: 'number', unidad: '%', limiteMax: 0.30, esRequerido: true },
       { id: 'f_e415_mn', nombre: '% Manganeso', tipo: 'number', unidad: '%', limiteMax: 1.50, esRequerido: true },
