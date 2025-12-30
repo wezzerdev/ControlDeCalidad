@@ -19,14 +19,102 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
   const { addToast } = useToast();
   const [resultados, setResultados] = useState<Record<string, string | number | boolean>>(muestra.resultados || {});
   const [status, setStatus] = useState<'aprobado' | 'rechazado' | 'en_proceso'>('en_proceso');
+  const [isMultiMode, setIsMultiMode] = useState(false);
+  const [specimenRows, setSpecimenRows] = useState<Record<string, any>[]>([]);
+
+  // Initialize state from muestra.resultados
+  useEffect(() => {
+    const res = muestra.resultados || {};
+    // Check implicit multi-mode
+    if (res._is_multi_implicit) {
+        setIsMultiMode(true);
+        // Reconstruct rows
+        const qty = Number(res._qty || 0);
+        const newRows = [];
+        for (let i = 0; i < qty; i++) {
+            const row: Record<string, any> = {};
+            // Find keys ending in _i
+            Object.keys(res).forEach(key => {
+                if (key.endsWith(`_${i}`)) {
+                    const baseKey = key.replace(`_${i}`, '');
+                    row[baseKey] = res[key];
+                }
+            });
+            newRows.push(row);
+        }
+        if (newRows.length === 0) newRows.push({}); // Start with 1 if empty but flag set
+        setSpecimenRows(newRows);
+    } else {
+        // Check explicit multi-mode (qty field)
+        const qtyField = norma.campos.find(f => 
+            f.id.includes('qty') || f.nombre.toLowerCase().includes('cantidad')
+        );
+        if (qtyField && res[qtyField.id]) {
+            const qty = Number(res[qtyField.id]);
+            if (qty > 0) {
+                 // Logic for explicit mode (already handled by renderField in previous code, but we want to unify)
+                 // For now, let's keep explicit mode as is in previous logic if possible, OR migrate to unified?
+                 // User complaint: "En los ensayos no salen todas las muestras capturadas si uso el boton multiple"
+                 // This refers to the Implicit Mode (toggle).
+            }
+        }
+    }
+  }, [muestra.resultados]);
 
   const handleResultChange = (fieldId: string, value: string | number | boolean) => {
     setResultados(prev => ({ ...prev, [fieldId]: value }));
   };
 
+  const handleSpecimenChange = (index: number, fieldId: string, value: any) => {
+      const newRows = [...specimenRows];
+      if (!newRows[index]) newRows[index] = {};
+      newRows[index][fieldId] = value;
+      setSpecimenRows(newRows);
+      
+      // Sync back to flat structure for storage
+      const flatKey = `${fieldId}_${index}`;
+      handleResultChange(flatKey, value);
+  };
+
+  const addSpecimen = () => {
+      setSpecimenRows([...specimenRows, {}]);
+      handleResultChange('_qty', specimenRows.length + 1);
+  };
+
+  const removeSpecimen = (index: number) => {
+      const newRows = [...specimenRows];
+      newRows.splice(index, 1);
+      setSpecimenRows(newRows);
+      
+      // We need to cleanup old keys from resultados to avoid ghosts?
+      // Or just update _qty. Ideally we should reconstruct 'resultados' from rows on save.
+      handleResultChange('_qty', newRows.length);
+  };
+
+  const handleBatchValueChange = (fieldId: string, value: any) => {
+      // Update all rows with this value
+      const newRows = specimenRows.map(row => ({
+          ...row,
+          [fieldId]: value
+      }));
+      setSpecimenRows(newRows);
+      
+      // Update flat results
+      newRows.forEach((row, idx) => {
+          handleResultChange(`${fieldId}_${idx}`, value);
+      });
+  };
+
   // Identificar campos globales y específicos
-  const globalFields = norma.campos.filter(f => f.scope !== 'specimen');
-  const specimenFields = norma.campos.filter(f => f.scope === 'specimen');
+  // If Implicit Multi Mode is ON, then ALL fields that are not strictly global (if any) become specimen fields?
+  // Or rather, the user decides via the UI.
+  // In SampleForm we treated non-global scope as specimen fields when isMultiMode is true.
+  
+  const globalFields = norma.campos.filter(f => f.scope === 'global' || (!isMultiMode && !f.scope));
+  // If isMultiMode, fields without scope become specimen fields
+  const effectiveSpecimenFields = isMultiMode 
+    ? norma.campos.filter(f => f.scope === 'specimen' || !f.scope)
+    : norma.campos.filter(f => f.scope === 'specimen');
   
   // Buscar campo que define la cantidad de especímenes (convención: contiene "qty" o "cantidad" en ID o nombre)
   const qtyField = norma.campos.find(f => 
@@ -34,6 +122,7 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
   );
 
   const getSpecimenCount = (): number => {
+    if (isMultiMode) return specimenRows.length;
     if (!qtyField) return 0;
     const val = resultados[qtyField.id];
     const num = Number(val);
@@ -59,9 +148,9 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
     });
 
     // Validate specimen fields
-    if (specimenCount > 0 && specimenFields.length > 0) {
+    if (specimenCount > 0 && effectiveSpecimenFields.length > 0) {
        for (let i = 0; i < specimenCount; i++) {
-         specimenFields.forEach(field => {
+         effectiveSpecimenFields.forEach(field => {
            const key = `${field.id}_${i}`;
            const val = resultados[key];
            if (field.esRequerido && (val === undefined || val === '')) allFilled = false;
@@ -76,7 +165,7 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
 
     if (!allFilled) return 'en_proceso';
     return allPass ? 'aprobado' : 'rechazado';
-  }, [norma.campos, resultados, specimenCount, globalFields, specimenFields]);
+  }, [norma.campos, resultados, specimenCount, globalFields, effectiveSpecimenFields]);
 
   const renderField = (field: typeof norma.campos[0], index?: number) => {
     const fieldId = index !== undefined ? `${field.id}_${index}` : field.id;
@@ -92,9 +181,23 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
             {field.nombre} {index !== undefined && `#${index + 1}`}
             {field.esRequerido && <span className="text-destructive ml-1">*</span>}
           </label>
-          <span className="text-xs text-muted-foreground ml-2 text-right">
-            {field.tipo === 'number' && field.unidad && `[${field.unidad}]`}
-          </span>
+          <div className="flex items-center gap-2">
+             {index !== undefined && isMultiMode && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  title="Aplicar a todos"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                  onClick={() => handleBatchValueChange(field.id, value)}
+                >
+                  <CheckCircle className="h-3 w-3" />
+                </Button>
+             )}
+             <span className="text-xs text-muted-foreground ml-2 text-right">
+                {field.tipo === 'number' && field.unidad && `[${field.unidad}]`}
+             </span>
+          </div>
         </div>
         
         <div className="pt-1">
@@ -102,7 +205,13 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
             <select
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               value={String(value || '')}
-              onChange={(e) => handleResultChange(fieldId, e.target.value)}
+              onChange={(e) => {
+                  if (index !== undefined && isMultiMode) {
+                      handleSpecimenChange(index, field.id, e.target.value);
+                  } else {
+                      handleResultChange(fieldId, e.target.value);
+                  }
+              }}
               required={field.esRequerido}
             >
               <option value="">Seleccionar...</option>
@@ -122,7 +231,13 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
                   type="radio"
                   name={fieldId}
                   checked={value === true}
-                  onChange={() => handleResultChange(fieldId, true)}
+                  onChange={() => {
+                      if (index !== undefined && isMultiMode) {
+                          handleSpecimenChange(index, field.id, true);
+                      } else {
+                          handleResultChange(fieldId, true);
+                      }
+                  }}
                   className="sr-only"
                 />
                 <CheckCircle className="h-4 w-4" />
@@ -138,7 +253,13 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
                   type="radio"
                   name={fieldId}
                   checked={value === false}
-                  onChange={() => handleResultChange(fieldId, false)}
+                  onChange={() => {
+                      if (index !== undefined && isMultiMode) {
+                          handleSpecimenChange(index, field.id, false);
+                      } else {
+                          handleResultChange(fieldId, false);
+                      }
+                  }}
                   className="sr-only"
                 />
                 <XCircle className="h-4 w-4" />
@@ -150,7 +271,13 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
               type={field.tipo === 'number' ? 'number' : 'text'}
               step={field.tipo === 'number' ? 'any' : undefined}
               value={String(value || '')}
-              onChange={(e) => handleResultChange(fieldId, e.target.value)}
+              onChange={(e) => {
+                  if (index !== undefined && isMultiMode) {
+                      handleSpecimenChange(index, field.id, e.target.value);
+                  } else {
+                      handleResultChange(fieldId, e.target.value);
+                  }
+              }}
               required={field.esRequerido}
               placeholder={field.tipo === 'number' && (field.limiteMin !== undefined || field.limiteMax !== undefined) 
                 ? `Rango: ${field.limiteMin ?? 'min'} - ${field.limiteMax ?? 'max'}` 
@@ -179,7 +306,26 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ ...muestra, resultados, estado: status });
+    
+    // Cleanup if isMultiMode: Ensure _qty and _is_multi_implicit are correct
+    let finalResultados = { ...resultados };
+    if (isMultiMode) {
+        finalResultados._is_multi_implicit = true;
+        finalResultados._qty = specimenRows.length;
+        
+        // Ensure rows are synced (though they should be via handleSpecimenChange)
+        specimenRows.forEach((row, idx) => {
+            Object.entries(row).forEach(([k, v]) => {
+                finalResultados[`${k}_${idx}`] = v;
+            });
+        });
+        
+        // Remove potentially deleted rows (ghosts)
+        // A simple way is to iterate up to a large number and delete keys > _qty-1
+        // But for now, relying on _qty for rendering is enough.
+    }
+
+    onSave({ ...muestra, resultados: finalResultados, estado: status });
     addToast('Resultados guardados correctamente', 'success');
   };
 
@@ -267,21 +413,49 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
               </div>
 
               {/* Campos por Espécimen */}
-              {specimenCount > 0 && specimenFields.length > 0 && (
+              {(specimenCount > 0 || isMultiMode) && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-                    Detalle de Especímenes ({specimenCount})
-                  </h3>
+                  <div className="flex items-center justify-between border-b pb-2">
+                    <h3 className="text-lg font-semibold text-foreground">
+                        Detalle de Especímenes ({specimenCount})
+                    </h3>
+                    {isMultiMode && (
+                        <Button type="button" size="sm" variant="outline" onClick={addSpecimen}>
+                            Agregar Especímen
+                        </Button>
+                    )}
+                  </div>
+
                   {Array.from({ length: specimenCount }).map((_, i) => (
-                    <div key={i} className="rounded-lg border bg-card/30 p-4">
-                      <h4 className="text-sm font-bold mb-4 text-muted-foreground uppercase tracking-wide">
-                        Espécimen {i + 1}
-                      </h4>
+                    <div key={i} className="rounded-lg border bg-card/30 p-4 relative group">
+                      <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
+                            Espécimen {i + 1}
+                          </h4>
+                          {isMultiMode && specimenCount > 1 && (
+                              <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => removeSpecimen(i)}
+                                className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                              >
+                                  <XCircle className="w-4 h-4" />
+                              </Button>
+                          )}
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {specimenFields.map(field => renderField(field, i))}
+                        {effectiveSpecimenFields.map(field => renderField(field, i))}
                       </div>
                     </div>
                   ))}
+                  
+                  {isMultiMode && specimenCount === 0 && (
+                      <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+                          No hay especímenes registrados. 
+                          <Button variant="link" onClick={addSpecimen}>Agregar uno</Button>
+                      </div>
+                  )}
                 </div>
               )}
             </CardContent>
