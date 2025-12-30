@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText } from 'lucide-react';
+import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
@@ -41,6 +41,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   const [gpsLocation, setGpsLocation] = useState<string>('');
   const [showNormaReview, setShowNormaReview] = useState(false);
   const [selectedNormaDetails, setSelectedNormaDetails] = useState<Norma | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Create options for "Tipo de Muestra" based on Project's assigned norms
   // Format: "Category - Norm Name"
@@ -56,12 +57,22 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
     const options: { id: string, label: string, category: SampleTypeCategory, normId: string }[] = [];
 
     projectNorms.forEach(n => {
+        // Clean up norm name by removing common prefixes to make it shorter
+        const cleanName = n.nombre
+          .replace(/^(NMX-[A-Z]-\d+-ONNCCE|ASTM [A-Z]\d+|ACI \d+) - /, '') // Remove code prefix if duplicated in name
+          .replace(/^Industria de la construcción - /, '')
+          .replace(/^Concreto - /, '')
+          .replace(/^Cementos hidráulicos - /, '')
+          .trim();
+
+        const code = n.codigo.split(' ')[0]; // Keep short code
+        
         // If norm has compatible types, create an option for each
         if (n.tiposMuestraCompatibles && n.tiposMuestraCompatibles.length > 0) {
             n.tiposMuestraCompatibles.forEach(cat => {
                 options.push({
                     id: `${n.id}-${cat}`, // Unique key
-                    label: `${cat} - ${n.nombre}`,
+                    label: `${cat} - ${cleanName} (${code})`,
                     category: cat,
                     normId: n.id
                 });
@@ -70,15 +81,23 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
              // Fallback if no types defined
              options.push({
                 id: n.id,
-                label: `General - ${n.nombre}`,
+                label: `General - ${cleanName} (${code})`,
                 category: 'Otro' as SampleTypeCategory,
                 normId: n.id
             });
         }
     });
     
-    return options;
+    return options.sort((a, b) => a.label.localeCompare(b.label));
   }, [formData.proyectoId, proyectos, normas]);
+
+  // Filter options based on search term
+  const filteredTestTypes = useMemo(() => {
+    if (!searchTerm) return availableTestTypes;
+    return availableTestTypes.filter(opt => 
+      opt.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [availableTestTypes, searchTerm]);
 
   // Handle specific test selection
   const handleTestTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -299,18 +318,54 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium">2. Ensayo / Tipo de Muestra</label>
-                      <select
-                        value={currentTestTypeValue}
-                        onChange={handleTestTypeChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        required
-                        disabled={!formData.proyectoId}
-                      >
-                        <option value="">Seleccione Ensayo</option>
-                        {availableTestTypes.map(opt => (
-                          <option key={opt.id} value={opt.id}>{opt.label}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        {availableTestTypes.length > 5 && (
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-gray-400" />
+                          </div>
+                        )}
+                        {availableTestTypes.length > 5 ? (
+                          <>
+                             {/* Searchable Custom Select could be complex, for now we keep simple select but add a filter input above if many items */}
+                             {/* Or better, just a searchable dropdown. Let's use a simple approach first: Input filter + Select */}
+                             <Input 
+                               placeholder="Buscar ensayo..." 
+                               value={searchTerm}
+                               onChange={(e) => setSearchTerm(e.target.value)}
+                               className="mb-2 pl-9"
+                             />
+                             <select
+                               value={currentTestTypeValue}
+                               onChange={handleTestTypeChange}
+                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                               required
+                               disabled={!formData.proyectoId}
+                               size={5} // Show multiple items to make it easier to pick from filtered list
+                             >
+                               {filteredTestTypes.length === 0 && <option value="" disabled>No se encontraron resultados</option>}
+                               {filteredTestTypes.map(opt => (
+                                 <option key={opt.id} value={opt.id} className="py-1">{opt.label}</option>
+                               ))}
+                             </select>
+                             <p className="text-xs text-muted-foreground mt-1">
+                               {filteredTestTypes.length} ensayos encontrados. Haga clic para seleccionar.
+                             </p>
+                          </>
+                        ) : (
+                          <select
+                            value={currentTestTypeValue}
+                            onChange={handleTestTypeChange}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            required
+                            disabled={!formData.proyectoId}
+                          >
+                            <option value="">Seleccione Ensayo</option>
+                            {availableTestTypes.map(opt => (
+                              <option key={opt.id} value={opt.id}>{opt.label}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
                     </div>
 
                     <div className="md:col-span-2 space-y-2">
