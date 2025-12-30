@@ -44,7 +44,13 @@ export default function Verification() {
              throw new Error('Elemento no encontrado');
           }
           
-          setData(result);
+          setData({
+             ...result,
+             fechaRecepcion: result.fecha_recepcion, // Map snake_case to camelCase
+             fechaTermino: result.fecha_termino,
+             fechaEnsayo: result.fecha_ensayo,
+             tipoMaterial: result.tipo_material
+          });
 
           if (type === 'certificado') {
              // Set default company info for public view since we don't have the context
