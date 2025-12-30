@@ -367,14 +367,21 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                              <select
                                value={currentTestTypeValue}
                                onChange={handleTestTypeChange}
-                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                               className="flex w-full rounded-md border border-input bg-background dark:bg-slate-950 text-foreground dark:text-slate-50 px-3 py-2 text-sm overflow-y-auto"
                                required
                                disabled={!formData.proyectoId}
                                size={5} // Show multiple items to make it easier to pick from filtered list
+                               style={{ height: 'auto', minHeight: '150px' }}
                              >
-                               {filteredTestTypes.length === 0 && <option value="" disabled>No se encontraron resultados</option>}
+                               {filteredTestTypes.length === 0 && <option value="" disabled className="py-2 px-2 text-muted-foreground">No se encontraron resultados</option>}
                                {filteredTestTypes.map(opt => (
-                                 <option key={opt.id} value={opt.id} className="py-1">{opt.label}</option>
+                                 <option 
+                                    key={opt.id} 
+                                    value={opt.id} 
+                                    className="py-2 px-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                                 >
+                                    {opt.label}
+                                 </option>
                                ))}
                              </select>
                              <p className="text-xs text-muted-foreground mt-1">
