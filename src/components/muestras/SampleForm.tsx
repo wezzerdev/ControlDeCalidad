@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockData';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
