@@ -210,9 +210,19 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
     );
     const specimenFields = norma.campos.filter(f => f.scope === 'specimen');
     
-    if (qtyField && muestra.resultados?.[qtyField.id] && specimenFields.length > 0) {
-      const count = Number(muestra.resultados[qtyField.id]);
-      if (count > 0) {
+    // Check for explicit multi mode or implicit multi mode
+    const isMultiMode = muestra.resultados?.['_is_multi_implicit'] || (qtyField && muestra.resultados?.[qtyField.id] && specimenFields.length > 0);
+    const count = muestra.resultados?.['_qty'] ? Number(muestra.resultados['_qty']) : (qtyField ? Number(muestra.resultados?.[qtyField.id]) : 0);
+
+    if (isMultiMode && count > 0) {
+      // If implicit, we need to treat all fields as potential specimen fields if they have _i suffix
+      // But we need a schema to render columns.
+      // If explicit specimenFields exist (defined in Norm), we use them.
+      // If NOT (generic norm used in multi mode), we should treat all non-global fields as specimen fields?
+      // Or simply iterate over all fields defined in norma and check if they have values for each row.
+      
+      const fieldsToRender = specimenFields.length > 0 ? specimenFields : norma.campos.filter(f => f.scope !== 'global');
+
         return (
           <div className="mt-8 mb-8">
             <h4 className="font-bold pb-2 mb-4 uppercase text-xs text-gray-500 tracking-wider">
@@ -223,7 +233,7 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="py-2 px-3 text-left w-16 text-xs text-gray-500 font-bold uppercase">#</th>
-                    {specimenFields.map(field => (
+                    {fieldsToRender.map(field => (
                       <th key={field.id} className="py-2 px-3 text-center text-xs text-gray-500 font-bold uppercase">
                         {field.nombre} {field.unidad && <span className="font-normal lowercase">({field.unidad})</span>}
                       </th>
@@ -234,10 +244,13 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
                   {Array.from({ length: count }).map((_, i) => (
                     <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-2 px-3 font-bold text-gray-400">{i + 1}</td>
-                      {specimenFields.map(field => {
+                      {fieldsToRender.map(field => {
+                        // Try both key formats: specific field id or generic
                         const key = `${field.id}_${i}`;
                         const value = muestra.resultados?.[key];
                         let pass = true;
+                        
+                        // Validation logic
                         if (field.tipo === 'number' && value !== undefined) {
                           const numVal = Number(value);
                           if (field.limiteMin !== undefined && numVal < field.limiteMin) pass = false;
@@ -252,7 +265,7 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
                               <span className="font-medium text-gray-700">
                                 {field.tipo === 'boolean' ? (value ? 'SI' : 'NO') : (value !== undefined ? value.toString() : '-')}
                               </span>
-                              {!pass && (
+                              {!pass && value !== undefined && (
                                 <span className="text-[9px] text-red-600 font-bold uppercase mt-0.5">Fuera de norma</span>
                               )}
                             </div>
@@ -266,7 +279,6 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
             </div>
           </div>
         );
-      }
     }
     return null;
   };
