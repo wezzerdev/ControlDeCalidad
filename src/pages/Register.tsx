@@ -14,7 +14,10 @@ const registerSchema = z.object({
   email: z.string().email('Email inválido'),
   role: z.enum(['administrador', 'gerente', 'residente', 'tecnico']),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  confirmPassword: z.string()
+  confirmPassword: z.string(),
+  terms: z.boolean().refine(val => val === true, {
+    message: "Debes aceptar los términos y condiciones",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Las contraseñas no coinciden",
   path: ["confirmPassword"],
@@ -115,6 +118,21 @@ export function Register() {
               error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
             />
+
+            <div className="flex items-start space-x-2">
+              <input
+                type="checkbox"
+                id="terms"
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                {...register('terms')}
+              />
+              <label htmlFor="terms" className="text-sm text-gray-500 dark:text-gray-400 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                He leído y acepto los <Link to="/legal/terms" className="text-primary hover:underline" target="_blank">Términos y Condiciones</Link> y la <Link to="/legal/privacy" className="text-primary hover:underline" target="_blank">Política de Privacidad</Link>.
+              </label>
+            </div>
+            {errors.terms && (
+              <p className="text-xs text-red-500">{errors.terms.message}</p>
+            )}
 
             <Button type="submit" className="w-full" isLoading={isSubmitting}>
               Registrarse

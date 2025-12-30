@@ -222,6 +222,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: '2024-01-10T00:00:00Z',
+    tiposMuestraCompatibles: ['Concreto'],
     campos: [
       {
         id: 'f_c155_cement',
@@ -481,6 +482,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Suelo'],
     campos: [
       { id: 'f_d1883_cbr', nombre: '% CBR', tipo: 'number', unidad: '%', esRequerido: true },
       { id: 'f_d1883_cond', nombre: 'Condición de Muestra', tipo: 'select', opciones: ['Remojado', 'No Remojado'], esRequerido: true },
@@ -496,6 +498,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Suelo'],
     campos: [
       { id: 'f_d2216_wet', nombre: 'Peso Húmedo', tipo: 'number', unidad: 'g', esRequerido: true },
       { id: 'f_d2216_dry', nombre: 'Peso Seco', tipo: 'number', unidad: 'g', esRequerido: true },
@@ -513,6 +516,7 @@ export const mockNormas: Norma[] = [
     activa: true,
     creadaPor: 'user_admin',
     createdAt: new Date().toISOString(),
+    tiposMuestraCompatibles: ['Acero'],
     campos: [
       { id: 'f_b172_diam', nombre: 'Diámetro Nominal', tipo: 'number', unidad: 'mm', esRequerido: true },
       { id: 'f_b172_load', nombre: 'Carga Máxima', tipo: 'number', unidad: 'kgf', esRequerido: true },

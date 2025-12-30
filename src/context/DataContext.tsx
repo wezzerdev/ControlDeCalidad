@@ -100,7 +100,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         campos: n.campos,
         activa: n.activa,
         creadaPor: n.created_by,
-        createdAt: n.created_at
+        createdAt: n.created_at,
+        tiposMuestraCompatibles: n.tipos_muestra_compatibles || []
       })));
     }
   };
@@ -232,7 +233,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       descripcion: norma.descripcion,
       campos: norma.campos,
       activa: norma.activa,
-      created_by: norma.creadaPor
+      created_by: norma.creadaPor,
+      tipos_muestra_compatibles: norma.tiposMuestraCompatibles
     });
     fetchNormas();
   };
@@ -245,6 +247,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (updatedNorma.descripcion) payload.descripcion = updatedNorma.descripcion;
     if (updatedNorma.campos) payload.campos = updatedNorma.campos;
     if (updatedNorma.activa !== undefined) payload.activa = updatedNorma.activa;
+    if (updatedNorma.tiposMuestraCompatibles) payload.tipos_muestra_compatibles = updatedNorma.tiposMuestraCompatibles;
 
     await supabase.from('normas').update(payload).eq('id', id);
     fetchNormas();

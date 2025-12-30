@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Norma, NormaField } from '../../data/mockData';
+import { Norma, NormaField, SampleTypeCategory } from '../../data/mockData';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Plus, X, Save, ArrowLeft } from 'lucide-react';
@@ -21,7 +21,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
     tipo: 'NMX',
     descripcion: '',
     activa: true,
-    campos: []
+    campos: [],
+    tiposMuestraCompatibles: []
   });
 
   const [campos, setCampos] = useState<NormaField[]>([]);
@@ -68,7 +69,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
       activa: formData.activa ?? true,
       creadaPor: initialData?.creadaPor || 'current_user', // Mock user
       createdAt: initialData?.createdAt || new Date().toISOString(),
-      campos: campos
+      campos: campos,
+      tiposMuestraCompatibles: formData.tiposMuestraCompatibles || []
     };
     onSave(normaToSave);
     addToast(initialData ? 'Norma actualizada correctamente' : 'Norma creada correctamente', 'success');
@@ -140,6 +142,29 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   rows={4}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
+              </div>
+              
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Tipos de Muestra Compatibles</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {['Concreto', 'Suelo', 'Acero', 'Agregados', 'Asfalto', 'Otro'].map((type) => (
+                    <label key={type} className="flex items-center space-x-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={formData.tiposMuestraCompatibles?.includes(type as SampleTypeCategory)}
+                        onChange={(e) => {
+                          const current = formData.tiposMuestraCompatibles || [];
+                          const updated = e.target.checked
+                            ? [...current, type as SampleTypeCategory]
+                            : current.filter(t => t !== type);
+                          setFormData(prev => ({ ...prev, tiposMuestraCompatibles: updated }));
+                        }}
+                        className="rounded border-input text-primary focus:ring-primary"
+                      />
+                      <span>{type}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -26,6 +26,9 @@ import Auditoria from './pages/Auditoria';
 import Notificaciones from './pages/Notificaciones';
 import Verification from './pages/Verification';
 
+import { Privacy } from './pages/legal/Privacy';
+import { Terms } from './pages/legal/Terms';
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -36,6 +39,8 @@ export default function App() {
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Home />} />
+                  <Route path="/legal/privacy" element={<Privacy />} />
+                  <Route path="/legal/terms" element={<Terms />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
