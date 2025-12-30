@@ -3,7 +3,7 @@ import { Proyecto, Norma, UserRole } from '../../data/mockData';
 import { useCompany } from '../../context/CompanyContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, Check } from 'lucide-react';
+import { Save, ArrowLeft, Check, Search } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { cn } from '../../lib/utils';
@@ -33,6 +33,7 @@ export function ProjectForm({ initialData, normas, onSave, onCancel }: ProjectFo
   });
 
   const [newProvider, setNewProvider] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (initialData) {
