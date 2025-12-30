@@ -480,11 +480,12 @@ export const mockNormas: Norma[] = [
     createdAt: new Date().toISOString(),
     tiposMuestraCompatibles: ['Agregados', 'Concreto'],
     campos: [
-      { id: 'f_c077_mesh', nombre: 'Tamaño de Malla', tipo: 'text', esRequerido: true },
-      { id: 'f_c077_ret', nombre: '% Retenido', tipo: 'number', unidad: '%', esRequerido: true },
-      { id: 'f_c077_acc', nombre: '% Acumulado', tipo: 'number', unidad: '%', esRequerido: true },
-      { id: 'f_c077_mod', nombre: 'Módulo de Finura', tipo: 'number', esRequerido: true },
-      { id: 'f_c077_type', nombre: 'Tipo de Agregado', tipo: 'select', opciones: ['Fino', 'Grueso'], esRequerido: true }
+      { id: 'f_c077_mesh', nombre: 'Tamaño de Malla', tipo: 'text', esRequerido: true, scope: 'specimen' },
+      { id: 'f_c077_ret', nombre: '% Retenido', tipo: 'number', unidad: '%', esRequerido: true, scope: 'specimen' },
+      { id: 'f_c077_acc', nombre: '% Acumulado', tipo: 'number', unidad: '%', esRequerido: true, scope: 'specimen' },
+      { id: 'f_c077_pass', nombre: '% Que Pasa', tipo: 'number', unidad: '%', esRequerido: true, scope: 'specimen' },
+      { id: 'f_c077_mod', nombre: 'Módulo de Finura', tipo: 'number', esRequerido: true, scope: 'global' },
+      { id: 'f_c077_type', nombre: 'Tipo de Agregado', tipo: 'select', opciones: ['Fino', 'Grueso'], esRequerido: true, scope: 'global' }
     ]
   },
   {
@@ -517,9 +518,12 @@ export const mockNormas: Norma[] = [
     createdAt: new Date().toISOString(),
     tiposMuestraCompatibles: ['Suelo', 'Terracerías' as any],
     campos: [
-      { id: 'f_c416_opt', nombre: 'Humedad Óptima', tipo: 'number', unidad: '%', esRequerido: true },
-      { id: 'f_c416_max', nombre: 'Densidad Máxima', tipo: 'number', unidad: 'kg/m³', esRequerido: true },
-      { id: 'f_c416_mat', nombre: 'Tipo de Material', tipo: 'text', esRequerido: true }
+      { id: 'f_c416_opt', nombre: 'Humedad Óptima', tipo: 'number', unidad: '%', esRequerido: true, scope: 'global' },
+      { id: 'f_c416_max', nombre: 'Densidad Máxima', tipo: 'number', unidad: 'kg/m³', esRequerido: true, scope: 'global' },
+      { id: 'f_c416_mat', nombre: 'Tipo de Material', tipo: 'text', esRequerido: true, scope: 'global' },
+      // Puntos de la curva
+      { id: 'f_c416_h', nombre: 'Humedad', tipo: 'number', unidad: '%', esRequerido: true, scope: 'specimen' },
+      { id: 'f_c416_d', nombre: 'Densidad Seca', tipo: 'number', unidad: 'kg/m³', esRequerido: true, scope: 'specimen' }
     ]
   },
   {
