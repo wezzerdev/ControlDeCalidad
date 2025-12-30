@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 export type LogAction = 'create' | 'update' | 'delete' | 'login' | 'audit' | 'approve' | 'reject';
-export type LogEntity = 'muestra' | 'ensayo' | 'usuario' | 'proyecto' | 'norma' | 'certificado';
+export type LogEntity = 'muestra' | 'ensayo' | 'usuario' | 'proyecto' | 'norma' | 'certificado' | 'audit';
 
 export async function logActivity(
   action: LogAction,
