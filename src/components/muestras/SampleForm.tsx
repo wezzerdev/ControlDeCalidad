@@ -526,7 +526,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                                 
                                 {campo.tipo === 'select' ? (
                                     <select
-                                        value={formData.resultados?.[campo.id] || ''}
+                                        value={String(formData.resultados?.[campo.id] || '')}
                                         onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value)}
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                         required={campo.esRequerido}
@@ -551,7 +551,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                                     <Input 
                                         type={campo.tipo === 'number' ? 'number' : 'text'}
                                         step={campo.tipo === 'number' ? "any" : undefined}
-                                        value={formData.resultados?.[campo.id] || ''}
+                                        value={String(formData.resultados?.[campo.id] || '')}
                                         onChange={(e) => handleDynamicFieldChange(campo.id, campo.tipo === 'number' ? parseFloat(e.target.value) : e.target.value)}
                                         placeholder={campo.nombre}
                                         required={campo.esRequerido}
