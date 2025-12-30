@@ -24,6 +24,7 @@ import Inventarios from './pages/Inventarios';
 import Resultados from './pages/Resultados';
 import Auditoria from './pages/Auditoria';
 import Notificaciones from './pages/Notificaciones';
+import ActivityLog from './pages/admin/ActivityLog';
 import Verification from './pages/Verification';
 
 import { Privacy } from './pages/legal/Privacy';
@@ -100,6 +101,11 @@ export default function App() {
                     <Route path="notificaciones" element={
                       <PermissionGuard permission="access_notificaciones">
                         <Notificaciones />
+                      </PermissionGuard>
+                    } />
+                    <Route path="activity-log" element={
+                      <PermissionGuard permission="access_auditoria">
+                        <ActivityLog />
                       </PermissionGuard>
                     } />
                     <Route path="account" element={<Account />} />

@@ -227,11 +227,11 @@ export default function Verification() {
 
   // Main Summary View
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {/* Top Navigation Bar */}
-      <div className="bg-white border-b sticky top-0 z-10 px-4 py-3 shadow-sm">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 px-4 py-3 shadow-sm">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
-             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-gray-500">
+             <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
                 <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
              </Button>
              <div className="flex items-center gap-2">
@@ -253,36 +253,36 @@ export default function Verification() {
                 <img 
                     src={companyInfo.logoUrl} 
                     alt={companyInfo.name} 
-                    className="h-24 w-auto mx-auto mb-4 object-contain drop-shadow-sm"
+                    className="h-24 w-auto mx-auto mb-4 object-contain drop-shadow-sm bg-white dark:bg-gray-800 p-2 rounded-lg"
                 />
             )}
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                 {companyInfo?.name || 'Laboratorio de Construcción'}
             </h1>
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-2">
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-2">
                 <MapPin className="h-3 w-3" />
                 <span>{companyInfo?.city || 'México'}</span>
             </div>
         </div>
 
         {/* Verification Card */}
-        <Card className="border-t-4 border-t-green-500 shadow-xl overflow-hidden">
-          <div className="bg-green-50 p-4 border-b border-green-100 flex items-center justify-center gap-2">
-             <CheckCircle className="h-5 w-5 text-green-600" />
-             <span className="font-bold text-green-700 uppercase tracking-wide text-sm">Documento Auténtico</span>
+        <Card className="border-t-4 border-t-green-500 shadow-xl overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-green-50 dark:bg-green-900/20 p-4 border-b border-green-100 dark:border-green-900/30 flex items-center justify-center gap-2">
+             <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+             <span className="font-bold text-green-700 dark:text-green-300 uppercase tracking-wide text-sm">Documento Auténtico</span>
           </div>
 
           <CardContent className="p-0">
             <div className="p-6 space-y-6">
                 {/* Main ID Section */}
-                <div className="text-center pb-6 border-b border-gray-100">
+                <div className="text-center pb-6 border-b border-gray-100 dark:border-gray-700">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Identificador</p>
-                    <h2 className="text-3xl font-bold text-gray-800 font-mono">{data.codigo}</h2>
+                    <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 font-mono">{data.codigo}</h2>
                     <div className="mt-3 flex justify-center">
                         <span className={cn(
                             "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide",
-                            data.estado === 'aprobado' ? "bg-green-100 text-green-700" : 
-                            data.estado === 'rechazado' ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700"
+                            data.estado === 'aprobado' ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : 
+                            data.estado === 'rechazado' ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300" : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
                         )}>
                             {data.estado}
                         </span>
@@ -296,15 +296,15 @@ export default function Verification() {
                             <Building2 className="h-5 w-5 text-gray-400 mt-0.5" />
                             <div>
                                 <p className="text-xs font-medium text-gray-500 uppercase">Proyecto</p>
-                                <p className="font-semibold text-gray-900">{data.proyectos?.nombre}</p>
-                                <p className="text-xs text-gray-500">{data.proyectos?.cliente}</p>
+                                <p className="font-semibold text-gray-900 dark:text-gray-200">{data.proyectos?.nombre}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{data.proyectos?.cliente}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3">
                             <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
                             <div>
                                 <p className="text-xs font-medium text-gray-500 uppercase">Norma</p>
-                                <p className="font-medium text-gray-900">{data.normas?.codigo}</p>
+                                <p className="font-medium text-gray-900 dark:text-gray-200">{data.normas?.codigo}</p>
                             </div>
                         </div>
                     </div>
@@ -314,9 +314,9 @@ export default function Verification() {
                             <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
                             <div>
                                 <p className="text-xs font-medium text-gray-500 uppercase">Fechas</p>
-                                <p className="text-sm text-gray-700"><span className="font-medium">Recepción:</span> {new Date(data.fecha_recepcion).toLocaleDateString()}</p>
+                                <p className="text-sm text-gray-700 dark:text-gray-300"><span className="font-medium">Recepción:</span> {new Date(data.fecha_recepcion).toLocaleDateString()}</p>
                                 {data.fecha_ensayo && (
-                                    <p className="text-sm text-gray-700"><span className="font-medium">Ensayo:</span> {new Date(data.fecha_ensayo).toLocaleDateString()}</p>
+                                    <p className="text-sm text-gray-700 dark:text-gray-300"><span className="font-medium">Ensayo:</span> {new Date(data.fecha_ensayo).toLocaleDateString()}</p>
                                 )}
                             </div>
                         </div>
@@ -325,7 +325,7 @@ export default function Verification() {
                                 <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
                                 <div>
                                     <p className="text-xs font-medium text-gray-500 uppercase">Ubicación en Obra</p>
-                                    <p className="text-sm text-gray-900">{data.ubicacion}</p>
+                                    <p className="text-sm text-gray-900 dark:text-gray-200">{data.ubicacion}</p>
                                 </div>
                             </div>
                         )}
@@ -334,17 +334,17 @@ export default function Verification() {
 
                 {/* Results Section */}
                 {data.resultados && (
-                  <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-2 mb-4">
                         <Activity className="h-4 w-4 text-primary" />
-                        <h3 className="font-bold text-sm text-gray-900 uppercase">Resultados Clave</h3>
+                        <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100 uppercase">Resultados Clave</h3>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-100 dark:border-gray-700">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
                           {Object.entries(data.resultados).slice(0, 6).map(([key, value]) => (
-                            <div key={key} className="flex justify-between items-center py-1 border-b border-gray-200 last:border-0 border-dashed">
-                              <span className="text-xs text-gray-500 truncate mr-2 capitalize">{key.replace(/_/g, ' ')}</span>
-                              <span className="font-mono text-sm font-medium text-gray-900">{String(value)}</span>
+                            <div key={key} className="flex justify-between items-center py-1 border-b border-gray-200 dark:border-gray-700 last:border-0 border-dashed">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 truncate mr-2 capitalize">{key.replace(/_/g, ' ')}</span>
+                              <span className="font-mono text-sm font-medium text-gray-900 dark:text-gray-200">{String(value)}</span>
                             </div>
                           ))}
                       </div>
@@ -354,7 +354,7 @@ export default function Verification() {
             </div>
             
             {/* Actions Footer */}
-            <div className="bg-gray-50 p-6 border-t border-gray-100">
+            <div className="bg-gray-50 dark:bg-gray-900/30 p-6 border-t border-gray-100 dark:border-gray-700">
                 {(data.estado === 'aprobado' || type === 'certificado') ? (
                      type === 'certificado' ? (
                         <Button onClick={() => setShowCertificate(true)} className="w-full shadow-md py-6">
@@ -368,7 +368,7 @@ export default function Verification() {
                         </Link>
                     )
                 ) : (
-                    <div className="text-center p-2 bg-yellow-50 rounded text-yellow-700 text-sm">
+                    <div className="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded text-yellow-700 dark:text-yellow-400 text-sm">
                         La muestra aún no ha sido aprobada para emitir certificado.
                     </div>
                 )}
@@ -377,11 +377,11 @@ export default function Verification() {
         </Card>
 
         {/* Platform Footer */}
-        <div className="text-center mt-12 pt-8 border-t border-gray-200">
-          <p className="text-xs font-medium text-gray-500 mb-2">Validación segura garantizada por</p>
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border shadow-sm">
-             <span className="font-bold text-primary-600">ConstruLab SaaS</span>
-             <span className="text-[10px] bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded font-medium">v1.0</span>
+        <div className="text-center mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Validación segura garantizada por</p>
+          <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-2 rounded-full border dark:border-gray-600 shadow-sm">
+             <span className="font-bold text-primary-600 dark:text-primary-400">ConstruLab SaaS</span>
+             <span className="text-[10px] bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-1.5 py-0.5 rounded font-medium">v1.0</span>
           </div>
           <p className="mt-4 text-[10px] text-gray-400">© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>

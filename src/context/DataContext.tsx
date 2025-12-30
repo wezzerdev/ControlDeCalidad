@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { logActivity, notifyRoles } from '../lib/logger';
 import { 
   Norma, 
   Proyecto, 
@@ -353,6 +354,19 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       // Use production URL for public verification
       const url = `https://controldecalidad.vercel.app/verify/muestra/${data.id}`;
       await supabase.from('muestras').update({ qr_code: url }).eq('id', data.id);
+      
+      // LOG ACTIVITY
+      await logActivity('create', 'muestra', data.id, { codigo: data.codigo, project: data.proyecto_id });
+      
+      // NOTIFY OTHERS
+      await notifyRoles(
+        ['admin', 'gerente', 'residente'],
+        'Nueva Muestra Registrada',
+        `Se ha registrado la muestra ${codigo} (${muestra.tipoMaterial}).`,
+        user?.id, // Exclude creator
+        `/app/muestras`
+      );
+
       fetchMuestras();
     }
   };
@@ -364,7 +378,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (updatedMuestra.fechaEnsayo) payload.fecha_ensayo = updatedMuestra.fechaEnsayo;
     if (updatedMuestra.fechaTermino) payload.fecha_termino = updatedMuestra.fechaTermino;
     
-    await supabase.from('muestras').update(payload).eq('id', id);
+    const { error } = await supabase.from('muestras').update(payload).eq('id', id);
+    
+    if (!error) {
+        const muestra = muestras.find(m => m.id === id);
+        
+        await logActivity('update', 'muestra', id, { 
+            codigo: muestra?.codigo, 
+            changes: Object.keys(updatedMuestra) 
+        });
+
+        if (updatedMuestra.estado && updatedMuestra.estado !== muestra?.estado) {
+             await notifyRoles(
+                ['admin', 'gerente', 'tecnico'], // Notify technician too if status changes
+                'Estado de Muestra Actualizado',
+                `La muestra ${muestra?.codigo} ha cambiado a estado: ${updatedMuestra.estado}.`,
+                user?.id,
+                `/app/muestras`
+             );
+        }
+    }
+
     fetchMuestras();
   };
 
@@ -427,6 +461,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       findings: audit.findings,
       score: audit.score
     });
+
+    await logActivity('create', 'audit', undefined, { type: audit.type, entity: audit.entity });
+    
+    await notifyRoles(
+        ['admin', 'gerente', 'residente'],
+        'Nueva Auditoría Programada',
+        `Se ha programado una auditoría ${audit.type} para ${audit.entity}.`,
+        user?.id,
+        '/app/auditorias'
+    );
+
     fetchAudits();
   };
 
