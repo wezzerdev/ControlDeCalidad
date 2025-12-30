@@ -362,7 +362,7 @@ export default function Verification() {
                         </Button>
                     ) : (
                         <Link to={`/verify/certificado/${id}`} className="block">
-                             <Button className="w-full shadow-md py-6" variant="default">
+                             <Button className="w-full shadow-md py-6" variant="primary">
                                 <CheckCircle className="mr-2 h-5 w-5" /> Ver Certificado Digital
                             </Button>
                         </Link>
