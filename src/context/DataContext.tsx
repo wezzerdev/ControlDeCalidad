@@ -350,8 +350,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     if (data && !error) {
       // Update with valid URL
-      // Use window.location.origin to point to current deployment
-      const url = `${window.location.origin}/verify/muestra/${data.id}`;
+      // Use production URL for public verification
+      const url = `https://controldecalidad.vercel.app/verify/muestra/${data.id}`;
       await supabase.from('muestras').update({ qr_code: url }).eq('id', data.id);
       fetchMuestras();
     }
