@@ -32,7 +32,8 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
     ubicacion: '',
     proveedor: '',
     estado: 'pendiente',
-    qrCode: `QR-${Date.now()}`
+    qrCode: `QR-${Date.now()}`,
+    resultados: {}
   });
 
   const [selectedCategory, setSelectedCategory] = useState<SampleTypeCategory | ''>('');
@@ -236,12 +237,35 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
     }
   };
 
+  const handleDynamicFieldChange = (fieldId: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      resultados: {
+        ...prev.resultados,
+        [fieldId]: value
+      }
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedCategory) {
       addToast('Por favor seleccione una categoría de muestra', 'error');
       return;
+    }
+
+    // Validate required dynamic fields
+    if (selectedNormaDetails && selectedNormaDetails.campos) {
+        for (const field of selectedNormaDetails.campos) {
+            if (field.esRequerido) {
+                const value = formData.resultados?.[field.id];
+                if (value === undefined || value === '' || value === null) {
+                    addToast(`El campo técnico "${field.nombre}" es requerido.`, 'error');
+                    return;
+                }
+            }
+        }
     }
 
     const finalLocation = gpsLocation 
@@ -261,6 +285,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       qrCode: formData.qrCode || '',
       estado: (formData.estado as 'pendiente' | 'en_proceso' | 'aprobado' | 'rechazado') || 'pendiente',
       tecnicoId: user?.id || '',
+      resultados: formData.resultados || {},
       createdAt: initialData?.createdAt || new Date().toISOString()
     };
     onSave(muestraToSave);
@@ -484,6 +509,59 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                    onChange={handleChange}
                  />
               </div>
+
+              {selectedNormaDetails && selectedNormaDetails.campos && selectedNormaDetails.campos.length > 0 && (
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-800 space-y-4 mt-6">
+                    <h3 className="text-sm font-semibold flex items-center text-primary">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Datos Técnicos del Ensayo
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {selectedNormaDetails.campos.map((campo) => (
+                            <div key={campo.id} className="space-y-2">
+                                <label className="text-sm font-medium flex justify-between">
+                                    <span>{campo.nombre}</span>
+                                    {campo.unidad && <span className="text-muted-foreground text-xs">({campo.unidad})</span>}
+                                </label>
+                                
+                                {campo.tipo === 'select' ? (
+                                    <select
+                                        value={formData.resultados?.[campo.id] || ''}
+                                        onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value)}
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        required={campo.esRequerido}
+                                    >
+                                        <option value="">Seleccione...</option>
+                                        {campo.opciones?.map(op => (
+                                            <option key={op} value={op}>{op}</option>
+                                        ))}
+                                    </select>
+                                ) : campo.tipo === 'boolean' ? (
+                                    <select
+                                        value={formData.resultados?.[campo.id] === undefined ? '' : String(formData.resultados?.[campo.id])}
+                                        onChange={(e) => handleDynamicFieldChange(campo.id, e.target.value === 'true')}
+                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        required={campo.esRequerido}
+                                    >
+                                        <option value="">Seleccione...</option>
+                                        <option value="true">Sí / Cumple</option>
+                                        <option value="false">No / No Cumple</option>
+                                    </select>
+                                ) : (
+                                    <Input 
+                                        type={campo.tipo === 'number' ? 'number' : 'text'}
+                                        step={campo.tipo === 'number' ? "any" : undefined}
+                                        value={formData.resultados?.[campo.id] || ''}
+                                        onChange={(e) => handleDynamicFieldChange(campo.id, campo.tipo === 'number' ? parseFloat(e.target.value) : e.target.value)}
+                                        placeholder={campo.nombre}
+                                        required={campo.esRequerido}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
