@@ -26,9 +26,17 @@ export default function Verification() {
               proyectos (nombre, cliente)
             `)
             .eq('id', id)
-            .single();
+            .maybeSingle(); // Use maybeSingle to avoid 406 error if not found immediately
 
-          if (error) throw error;
+          if (error) {
+             console.error("Verification fetch error:", error);
+             throw error;
+          }
+          
+          if (!result) {
+             throw new Error('Elemento no encontrado');
+          }
+          
           setData(result);
         } else {
           throw new Error('Tipo de verificación no soportado');

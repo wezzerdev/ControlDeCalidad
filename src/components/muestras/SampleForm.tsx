@@ -494,8 +494,21 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
               <CardTitle>Resumen</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 flex flex-col items-center">
-              <div className="bg-white p-4 rounded-lg border border-border flex items-center justify-center">
-                <QRCode value={formData.qrCode || 'pending'} size={128} />
+              <div className="bg-white p-4 rounded-lg border border-border flex items-center justify-center relative">
+                <QRCode 
+                    value={initialData?.qrCode && initialData.qrCode !== 'pending' && !initialData.qrCode.startsWith('QR-') 
+                        ? initialData.qrCode 
+                        : 'https://constru-lab-saas.vercel.app'} 
+                    size={128} 
+                    className={!initialData?.id ? "opacity-20 blur-sm" : ""}
+                />
+                {!initialData?.id && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-bold text-center bg-background/80 p-1 rounded">
+                            Se generará al guardar
+                        </span>
+                    </div>
+                )}
               </div>
               
               <div className="w-full text-sm space-y-2">
