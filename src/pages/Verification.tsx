@@ -1,28 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/common/Card';
-import { CheckCircle, XCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CertificateTemplate } from '../components/certificados/CertificateTemplate';
+import { CompanyInfo } from '../context/CompanyContext';
+import { CertificateTemplate as TemplateConfig } from '../data/mockData';
 
 export default function Verification() {
   const { type, id } = useParams();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // States for certificate view
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
+  const [template, setTemplate] = useState<TemplateConfig | null>(null);
 
   useEffect(() => {
     const verifyItem = async () => {
       if (!id || !type) return;
 
       try {
-        if (type === 'muestra') {
+        if (type === 'muestra' || type === 'certificado') {
           // Use RPC for public verification to be safe, or direct select if policy allows
           // For now, we try direct select. If it fails due to RLS, we need the RPC.
           const { data: result, error } = await supabase
             .from('muestras')
             .select(`
               *,
-              normas (codigo, nombre),
+              normas (codigo, nombre, campos, tipo, descripcion),
               proyectos (nombre, cliente)
             `)
             .eq('id', id)
@@ -38,6 +45,30 @@ export default function Verification() {
           }
           
           setData(result);
+
+          if (type === 'certificado') {
+             // Set default company info for public view since we don't have the context
+             setCompanyInfo({
+               name: 'LABORATORIO DE CONSTRUCCIÓN',
+               address: 'Verificación Digital',
+               city: 'México',
+               phone: '',
+               email: '',
+               planId: 'free'
+             });
+             
+             // Default template
+             setTemplate({
+               id: 'default',
+               name: 'Classic',
+               layout: 'classic',
+               primaryColor: '#000000',
+               showWatermark: true,
+               showQr: true,
+               showBorder: true,
+               isDefault: true
+             });
+          }
         } else {
           throw new Error('Tipo de verificación no soportado');
         }
@@ -76,6 +107,41 @@ export default function Verification() {
     );
   }
 
+  // Render Certificate View
+  if (type === 'certificado' && companyInfo && template) {
+    const norma = {
+        ...data.normas,
+        campos: data.normas.campos || [],
+        tiposMuestraCompatibles: []
+    };
+    
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto mb-4 flex justify-between items-center print:hidden">
+            <div className="flex items-center gap-2">
+                <Link to={`/verify/muestra/${id}`} className="text-sm text-gray-500 hover:text-gray-900">
+                    &larr; Ver Resumen
+                </Link>
+                <h1 className="text-xl font-bold ml-4">Vista Pública del Certificado</h1>
+            </div>
+            <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                Imprimir / Guardar PDF
+            </button>
+        </div>
+        <CertificateTemplate
+          muestra={data}
+          proyecto={data.proyectos}
+          norma={norma}
+          companyInfo={companyInfo}
+          template={template}
+        />
+        <div className="text-center mt-8 text-xs text-gray-400 print:hidden">
+            <p>Este es un documento de solo lectura generado para validación pública.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
@@ -91,7 +157,7 @@ export default function Verification() {
               <span className="font-bold text-lg">Elemento Auténtico</span>
             </div>
             <CardTitle className="text-xl">
-              {type === 'muestra' ? `Muestra ${data.codigo}` : 'Certificado'}
+              {`Muestra ${data.codigo}`}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               ID: {data.id}
@@ -137,6 +203,18 @@ export default function Verification() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Link to Certificate View */}
+            {data.estado === 'aprobado' && (
+                <div className="mt-6 pt-4 border-t text-center">
+                    <Link 
+                        to={`/verify/certificado/${id}`}
+                        className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 hover:underline"
+                    >
+                        Ver Certificado Digital Completo
+                    </Link>
+                </div>
             )}
           </CardContent>
         </Card>
