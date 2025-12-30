@@ -502,10 +502,9 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
   return (
     <div className={cn(
       "bg-white text-black p-8 md:p-12 shadow-lg mx-auto print:shadow-none print:p-0 print:m-0 flex flex-col relative",
-      // Carta size approx: 216mm x 279mm. 
-      // Tailwind doesn't have explicit mm sizes, so we use min-h for screen view simulating A4/Letter
-      // In print mode, we let the browser handle pages, but we ensure width is full
-      "w-[216mm] min-h-[279mm] print:w-full print:min-h-0 print:h-auto",
+      // Carta size: 216mm x 279mm
+      // We set specific max-width to match Letter size in screen
+      "max-w-[216mm] min-h-[279mm] w-full print:w-full print:max-w-none print:min-h-0 print:h-auto",
       template.showBorder && "border-2"
     )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent' }}>
       
