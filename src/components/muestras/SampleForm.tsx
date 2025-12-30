@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb } from 'lucide-react';
+import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
@@ -43,6 +43,10 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   const [showNormaReview, setShowNormaReview] = useState(false);
   const [selectedNormaDetails, setSelectedNormaDetails] = useState<Norma | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [displayValue, setDisplayValue] = useState('');
 
   // Create options for "Tipo de Muestra" based on Project's assigned norms
   // Format: "Category - Norm Name"
@@ -105,36 +109,53 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
     );
   }, [availableTestTypes, searchTerm]);
 
-  // Handle specific test selection
-  const handleTestTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const selectedOptionId = e.target.value;
-      if (!selectedOptionId) {
-          setSelectedCategory('');
-          setFormData(prev => ({ ...prev, normaId: '' }));
-          return;
+  // Sync display value when selection changes externally or initially
+  useEffect(() => {
+      if (formData.normaId && selectedCategory) {
+          const match = availableTestTypes.find(opt => opt.normId === formData.normaId && opt.category === selectedCategory);
+          if (match) {
+              setDisplayValue(match.label);
+          }
+      } else if (!formData.normaId) {
+          setDisplayValue('');
       }
+  }, [formData.normaId, selectedCategory, availableTestTypes]);
 
-      const selectedOption = availableTestTypes.find(opt => opt.id === selectedOptionId);
-      if (selectedOption) {
-          setSelectedCategory(selectedOption.category);
-          setFormData(prev => ({ 
-              ...prev, 
-              normaId: selectedOption.normId,
-              // Auto-fill material description if empty
-              tipoMaterial: !prev.tipoMaterial ? selectedOption.category : prev.tipoMaterial 
-          }));
+  // Handle Search Input Change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setSearchTerm(value);
+      setDisplayValue(value);
+      setIsDropdownOpen(true);
+      
+      if (value === '') {
+           setSelectedCategory('');
+           setFormData(prev => ({ ...prev, normaId: '' }));
       }
   };
 
-  // Keep compatibility with manual category selection if needed, but primary is now TestType
-  // We can derive "selectedTestType" value from current category + normId
-  const currentTestTypeValue = useMemo(() => {
-      if (formData.normaId && selectedCategory) {
-          const match = availableTestTypes.find(opt => opt.normId === formData.normaId && opt.category === selectedCategory);
-          return match ? match.id : '';
-      }
-      return '';
-  }, [formData.normaId, selectedCategory, availableTestTypes]);
+  // Handle Option Selection
+  const handleSelectOption = (option: typeof availableTestTypes[0]) => {
+      setSelectedCategory(option.category);
+      setFormData(prev => ({ 
+          ...prev, 
+          normaId: option.normId,
+          tipoMaterial: !prev.tipoMaterial ? option.category : prev.tipoMaterial 
+      }));
+      setDisplayValue(option.label);
+      setSearchTerm(''); // Reset search term so next time we open we see all options (or filtered by nothing)
+      setIsDropdownOpen(false);
+  };
+
+  // Clear Selection
+  const handleClearSelection = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSearchTerm('');
+      setDisplayValue('');
+      setSelectedCategory('');
+      setFormData(prev => ({ ...prev, normaId: '' }));
+      setIsDropdownOpen(true); // Open dropdown to show all options
+  };
 
   // Update available norms based on Project AND Selected Category (Step 3 logic remains for verification)
   useEffect(() => {
@@ -349,58 +370,62 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                     <div className="space-y-2">
                       <label className="text-sm font-medium">2. Ensayo / Tipo de Muestra</label>
                       <div className="relative">
-                        {availableTestTypes.length > 5 && (
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-4 w-4 text-gray-400" />
-                          </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                                placeholder={!formData.proyectoId ? "Seleccione proyecto primero" : "Buscar o seleccionar ensayo..."}
+                                value={displayValue}
+                                onChange={handleSearchChange}
+                                onFocus={() => formData.proyectoId && setIsDropdownOpen(true)}
+                                className="pl-9 pr-10 cursor-pointer"
+                                disabled={!formData.proyectoId}
+                                readOnly={false}
+                                autoComplete="off"
+                            />
+                            <div className="absolute right-3 top-2.5 flex items-center gap-1">
+                                {displayValue && (
+                                    <X 
+                                        className="h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" 
+                                        onClick={handleClearSelection}
+                                    />
+                                )}
+                                <ChevronDown 
+                                    className={`h-4 w-4 text-muted-foreground cursor-pointer transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                                    onClick={() => formData.proyectoId && setIsDropdownOpen(!isDropdownOpen)}
+                                />
+                            </div>
+                        </div>
+
+                        {isDropdownOpen && formData.proyectoId && (
+                            <>
+                                {/* Invisible overlay to handle click outside */}
+                                <div className="fixed inset-0 z-10" onClick={() => setIsDropdownOpen(false)}></div>
+                                
+                                <div className="absolute z-20 w-full mt-1 bg-popover border border-border rounded-md shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                                    {filteredTestTypes.length === 0 ? (
+                                        <div className="p-3 text-sm text-muted-foreground text-center">No se encontraron resultados</div>
+                                    ) : (
+                                        filteredTestTypes.map(opt => (
+                                            <div 
+                                                key={opt.id}
+                                                className={`px-3 py-2 text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground flex items-center justify-between transition-colors ${formData.normaId === opt.normId && selectedCategory === opt.category ? 'bg-accent/50 text-accent-foreground font-medium' : ''}`}
+                                                onClick={() => handleSelectOption(opt)}
+                                            >
+                                                <span>{opt.label}</span>
+                                                {formData.normaId === opt.normId && selectedCategory === opt.category && (
+                                                    <CheckCircle className="h-3 w-3 text-primary" />
+                                                )}
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </>
                         )}
-                        {availableTestTypes.length > 5 ? (
-                          <>
-                             {/* Searchable Custom Select could be complex, for now we keep simple select but add a filter input above if many items */}
-                             {/* Or better, just a searchable dropdown. Let's use a simple approach first: Input filter + Select */}
-                             <Input 
-                               placeholder="Buscar ensayo..." 
-                               value={searchTerm}
-                               onChange={(e) => setSearchTerm(e.target.value)}
-                               className="mb-2 pl-9"
-                             />
-                             <select
-                               value={currentTestTypeValue}
-                               onChange={handleTestTypeChange}
-                               className="flex w-full rounded-md border border-input bg-background dark:bg-slate-950 text-foreground dark:text-slate-50 px-3 py-2 text-sm overflow-y-auto"
-                               required
-                               disabled={!formData.proyectoId}
-                               size={5} // Show multiple items to make it easier to pick from filtered list
-                               style={{ height: 'auto', minHeight: '150px' }}
-                             >
-                               {filteredTestTypes.length === 0 && <option value="" disabled className="py-2 px-2 text-muted-foreground">No se encontraron resultados</option>}
-                               {filteredTestTypes.map(opt => (
-                                 <option 
-                                    key={opt.id} 
-                                    value={opt.id} 
-                                    className="py-2 px-2 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                                 >
-                                    {opt.label}
-                                 </option>
-                               ))}
-                             </select>
-                             <p className="text-xs text-muted-foreground mt-1">
-                               {filteredTestTypes.length} ensayos encontrados. Haga clic para seleccionar.
-                             </p>
-                          </>
-                        ) : (
-                          <select
-                            value={currentTestTypeValue}
-                            onChange={handleTestTypeChange}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            required
-                            disabled={!formData.proyectoId}
-                          >
-                            <option value="">Seleccione Ensayo</option>
-                            {availableTestTypes.map(opt => (
-                              <option key={opt.id} value={opt.id}>{opt.label}</option>
-                            ))}
-                          </select>
+                        
+                        {!formData.proyectoId && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Seleccione un proyecto para ver los ensayos disponibles.
+                            </p>
                         )}
                       </div>
                     </div>
