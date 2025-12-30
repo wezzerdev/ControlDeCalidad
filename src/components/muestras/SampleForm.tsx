@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search } from 'lucide-react';
+import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
@@ -522,15 +522,60 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
           onClose={() => setShowNormaReview(false)}
           title={`Reseña: ${selectedNormaDetails.codigo}`}
         >
-          <div className="space-y-4">
+          <div className="space-y-6">
              <div>
-               <h4 className="font-semibold text-primary mb-1">Descripción</h4>
-               <p className="text-sm text-foreground">{selectedNormaDetails.descripcion}</p>
+               <h4 className="font-semibold text-primary mb-2 flex items-center">
+                   <Info className="w-4 h-4 mr-2" />
+                   Descripción General
+               </h4>
+               <p className="text-sm text-foreground bg-muted/30 p-3 rounded-md">
+                   {selectedNormaDetails.descripcion}
+               </p>
              </div>
+
+             {selectedNormaDetails.tutorial && (
+                 <div className="space-y-4">
+                     <div>
+                        <h4 className="font-semibold text-primary mb-2 flex items-center">
+                            <BookOpen className="w-4 h-4 mr-2" />
+                            Guía Rápida de Muestreo
+                        </h4>
+                        <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-md border border-blue-100 dark:border-blue-800">
+                            <ul className="space-y-3">
+                                {selectedNormaDetails.tutorial.pasos.map((paso, index) => (
+                                    <li key={index} className="flex items-start text-sm">
+                                        <span className="flex-shrink-0 w-5 h-5 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                                            {index + 1}
+                                        </span>
+                                        <span className="text-foreground/90">{paso}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                     </div>
+
+                     {selectedNormaDetails.tutorial.tips && selectedNormaDetails.tutorial.tips.length > 0 && (
+                         <div>
+                             <h4 className="font-semibold text-primary mb-2 flex items-center text-sm">
+                                 <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
+                                 Tips del Experto
+                             </h4>
+                             <ul className="space-y-2">
+                                 {selectedNormaDetails.tutorial.tips.map((tip, index) => (
+                                     <li key={index} className="flex items-start text-xs text-muted-foreground italic bg-yellow-50/50 dark:bg-yellow-900/10 p-2 rounded">
+                                         <CheckCircle className="w-3 h-3 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
+                                         {tip}
+                                     </li>
+                                 ))}
+                             </ul>
+                         </div>
+                     )}
+                 </div>
+             )}
              
              <div>
-               <h4 className="font-semibold text-primary mb-1">Detalles Técnicos</h4>
-               <ul className="text-sm space-y-1 list-disc list-inside">
+               <h4 className="font-semibold text-primary mb-2 text-sm">Detalles Técnicos</h4>
+               <ul className="text-xs space-y-1 list-disc list-inside text-muted-foreground">
                  <li>Tipo: {selectedNormaDetails.tipo}</li>
                  <li>Compatibilidad: {selectedNormaDetails.tiposMuestraCompatibles?.join(', ')}</li>
                  <li>Campos Requeridos: {selectedNormaDetails.campos.length}</li>
@@ -544,8 +589,8 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                </p>
              </div>
              
-             <div className="flex justify-end pt-4">
-               <Button onClick={() => setShowNormaReview(false)}>Entendido</Button>
+             <div className="flex justify-end pt-2">
+               <Button onClick={() => setShowNormaReview(false)}>Entendido, iniciar muestreo</Button>
              </div>
           </div>
         </Modal>

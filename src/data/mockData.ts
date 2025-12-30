@@ -126,6 +126,11 @@ export interface Norma {
   createdAt: string;
   // New field for relationship
   tiposMuestraCompatibles: SampleTypeCategory[];
+  tutorial?: {
+      pasos: string[];
+      videoUrl?: string; // Optional link to a video
+      tips?: string[];
+  };
 }
 
 export const mockNormas: Norma[] = [
@@ -139,6 +144,15 @@ export const mockNormas: Norma[] = [
     creadaPor: 'user_admin',
     createdAt: '2024-01-01T00:00:00Z',
     tiposMuestraCompatibles: ['Concreto'],
+    tutorial: {
+        pasos: [
+            'Verificar que el espécimen cumpla con las dimensiones requeridas.',
+            'Preparar la mezcla de azufre o almohadillas de neopreno según corresponda.',
+            'Colocar el cabeceo asegurando la perpendicularidad.',
+            'Dejar enfriar o asentar antes de la prueba.'
+        ],
+        tips: ['Revisar la planeidad de las placas de cabeceo periódicamente.']
+    },
     campos: [
       {
         id: 'f1',
