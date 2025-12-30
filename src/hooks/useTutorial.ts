@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { driver } from 'driver.js';
+import { driver, DriveStep } from 'driver.js';
 import { useAuth } from '../context/AuthContext';
 
 export function useTutorial() {
@@ -9,7 +9,7 @@ export function useTutorial() {
   const [hasStartedAuto, setHasStartedAuto] = useState(false);
 
   // Helper to determine tutorial config based on route
-  const getTutorialConfig = useCallback((pathname: string) => {
+  const getTutorialConfig = useCallback((pathname: string): { key: string; steps: DriveStep[] } => {
     if (pathname.startsWith('/app/proyectos')) {
       return {
         key: 'proyectos',
