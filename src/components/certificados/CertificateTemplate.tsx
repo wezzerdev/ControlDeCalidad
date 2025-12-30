@@ -391,8 +391,8 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
     return null;
   };
 
-  const Footer = () => (
-    <div className="mt-auto pt-8 page-break-inside-avoid">
+  const FooterContent = () => (
+    <div className="w-full">
       <div className="grid grid-cols-2 gap-8 text-center mb-8">
         <div>
            <div className="h-12 mb-1 flex items-end justify-center"></div>
@@ -434,15 +434,12 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
          )}
       </div>
 
-      <div className="mt-4 flex justify-between items-end text-[8px] text-gray-400">
-        <p className="text-center flex-1">
+      <div className="mt-4 text-[8px] text-gray-400 text-center">
+        <p>
             Este informe no podrá ser reproducido total o parcialmente sin la autorización por escrito de {companyInfo.name}.
             <br />
             Generado electrónicamente el: {new Date().toLocaleString()}
         </p>
-        <div className="print:block hidden absolute bottom-[15mm] right-[15mm]">
-            <span className="counter"></span>
-        </div>
       </div>
     </div>
   );
@@ -462,77 +459,88 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
               -webkit-print-color-adjust: exact;
               print-color-adjust: exact;
             }
-            /* Page Numbering Logic */
-            body {
-                counter-reset: page;
+            .print-page {
+                width: 215.9mm;
+                min-height: 279.4mm;
+                padding: 15mm;
+                position: relative;
+                page-break-after: always;
+                display: flex;
+                flex-direction: column;
             }
-            .page-number::after {
-                counter-increment: page;
-                content: "Página " counter(page);
+            .print-page:last-child {
+                page-break-after: auto;
             }
-            /* Since we are rendering a single long div, browser pagination is automatic but css counters are per element or page box. 
-               CSS Paged Media Module support is limited in browsers. 
-               A robust way for simple browsers is putting page number in fixed footer? 
-               But fixed footer overlaps content.
-               
-               Let's try the standard approach for repeating footer if supported, 
-               OR just a single "Page X of Y" if we can calculate it (hard in JS without rendering).
-               
-               Actually, standard browsers (Chrome) add header/footer with page numbers if the user checks the option.
-               But the user explicitly asked to put it in the footer manually "por que si no cabe todo el certificado".
-               
-               Since we have a continuous layout, we can't easily know where page breaks are in JS.
-               However, we can try to force a footer on every page using table-footer-group trick or fixed position.
-               Fixed position repeats on every page.
-            */
-            #print-footer {
-                position: fixed;
-                bottom: 10mm;
-                right: 15mm;
-                font-size: 8px;
-                color: #9ca3af;
-            }
+            /* Hide web-only elements if any */
           }
         `}
       </style>
       
-      {/* Repeated Footer for Page Numbers */}
-      <div id="print-footer" className="hidden print:block">
-         Página <span className="page-number"></span>
-      </div>
+      <div className="bg-gray-100 p-8 print:p-0 print:bg-white">
+        
+        {/* PAGE 1: Content */}
+        <div className={cn(
+            "bg-white text-black shadow-lg mx-auto flex flex-col relative mb-8 print:mb-0",
+            "w-[215.9mm] min-h-[279.4mm] p-[15mm]",
+            "print:w-[215.9mm] print:min-h-[279.4mm] print:shadow-none print:break-after-page print-page"
+        )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent', borderWidth: template.showBorder ? '2px' : '0' }}>
+            
+            {/* Watermark */}
+            {template.showWatermark && (
+            <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
+                <span className="text-[150px] font-bold text-black transform -rotate-45 whitespace-nowrap">
+                {muestra.estado === 'pendiente' || muestra.estado === 'en_proceso' ? 'BORRADOR' : 'ORIGINAL'}
+                </span>
+            </div>
+            )}
 
-      <div className={cn(
-        "bg-white text-black shadow-lg mx-auto flex flex-col relative",
-        // Dimensions: Fixed for screen to simulate letter, explicit for print to match page size
-        "w-[215.9mm] min-h-[279.4mm]",
-        "print:w-[215.9mm] print:min-h-[279.4mm] print:absolute print:top-0 print:left-0 print:m-0",
-        // Padding: Safe margins for printing (approx 15mm)
-        "p-[15mm]",
-        template.showBorder && "border-2"
-      )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent' }}>
-        
-        {/* Watermark */}
-        {template.showWatermark && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
-            <span className="text-[150px] font-bold text-black transform -rotate-45 whitespace-nowrap">
-              {muestra.estado === 'pendiente' || muestra.estado === 'en_proceso' ? 'BORRADOR' : 'ORIGINAL'}
-            </span>
-          </div>
-        )}
+            <Header />
+            <SampleInfo />
+            
+            <ResultsTable />
+            <DynamicCharts />
+            <SpecimenDetails />
+            
+            {/* Page 1 Footer */}
+            <div className="flex-grow"></div>
+            <div className="mt-8 flex justify-end">
+                <span className="text-[10px] text-gray-400">Página 1/2</span>
+            </div>
 
-        <Header />
-        <SampleInfo />
-        
-        <ResultsTable />
-        <DynamicCharts />
-        <SpecimenDetails />
-        
-        <Footer />
-        
-        {/* Modern decorative bottom bar */}
-        {template.layout === 'modern' && (
-           <div className="absolute bottom-0 left-0 right-0 h-2" style={{ backgroundColor: primaryColor }} />
-        )}
+            {/* Modern decorative bottom bar */}
+            {template.layout === 'modern' && (
+            <div className="absolute bottom-0 left-0 right-0 h-2" style={{ backgroundColor: primaryColor }} />
+            )}
+        </div>
+
+        {/* PAGE 2: Signatures & QR */}
+        <div className={cn(
+            "bg-white text-black shadow-lg mx-auto flex flex-col relative",
+            "w-[215.9mm] min-h-[279.4mm] p-[15mm]",
+            "print:w-[215.9mm] print:min-h-[279.4mm] print:shadow-none print-page"
+        )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent', borderWidth: template.showBorder ? '2px' : '0' }}>
+             
+             {/* Header repeated on Page 2 */}
+             <Header />
+             
+             {/* Spacer to push signatures to bottom or center? User said "acomodamos esa seccion del QR en la 2 hoja". 
+                 Usually signatures are at the bottom or after content. Since this page is mostly empty, 
+                 we can put it at the bottom for consistency. */}
+             <div className="flex-grow"></div>
+             
+             <FooterContent />
+
+             {/* Page 2 Footer */}
+             <div className="mt-4 flex justify-end">
+                <span className="text-[10px] text-gray-400">Página 2/2</span>
+             </div>
+
+             {/* Modern decorative bottom bar */}
+             {template.layout === 'modern' && (
+                <div className="absolute bottom-0 left-0 right-0 h-2" style={{ backgroundColor: primaryColor }} />
+             )}
+        </div>
+
       </div>
     </>
   );
