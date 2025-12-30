@@ -391,8 +391,24 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
     return null;
   };
 
+  const LegalFooter = ({ pageText }: { pageText: string }) => (
+    <div className="absolute bottom-[15mm] left-[15mm] right-[15mm]">
+        <div className="flex justify-between items-end text-[8px] text-gray-400 border-t border-gray-100 pt-2">
+            <div className="w-12"></div> {/* Spacer for balance */}
+            <p className="text-center flex-1">
+                Este informe no podrá ser reproducido total o parcialmente sin la autorización por escrito de {companyInfo.name}.
+                <br />
+                Generado electrónicamente el: {new Date().toLocaleString()}
+            </p>
+            <div className="w-12 text-right">
+                <span>{pageText}</span>
+            </div>
+        </div>
+    </div>
+  );
+
   const FooterContent = () => (
-    <div className="w-full">
+    <div className="w-full mb-8"> {/* mb-8 to give space for LegalFooter if flow reaches bottom, though LegalFooter is absolute */}
       <div className="grid grid-cols-2 gap-8 text-center mb-8">
         <div>
            <div className="h-12 mb-1 flex items-end justify-center"></div>
@@ -433,14 +449,6 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
            </div>
          )}
       </div>
-
-      <div className="mt-4 text-[8px] text-gray-400 text-center">
-        <p>
-            Este informe no podrá ser reproducido total o parcialmente sin la autorización por escrito de {companyInfo.name}.
-            <br />
-            Generado electrónicamente el: {new Date().toLocaleString()}
-        </p>
-      </div>
     </div>
   );
 
@@ -461,17 +469,17 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
             }
             .print-page {
                 width: 215.9mm;
-                min-height: 279.4mm;
+                height: 279.4mm; /* Force fixed height for print pages */
                 padding: 15mm;
                 position: relative;
                 page-break-after: always;
                 display: flex;
                 flex-direction: column;
+                overflow: hidden; /* Prevent spillover */
             }
             .print-page:last-child {
                 page-break-after: auto;
             }
-            /* Hide web-only elements if any */
           }
         `}
       </style>
@@ -482,7 +490,7 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
         <div className={cn(
             "bg-white text-black shadow-lg mx-auto flex flex-col relative mb-8 print:mb-0",
             "w-[215.9mm] min-h-[279.4mm] p-[15mm]",
-            "print:w-[215.9mm] print:min-h-[279.4mm] print:shadow-none print:break-after-page print-page"
+            "print:w-[215.9mm] print:h-[279.4mm] print:shadow-none print:break-after-page print-page"
         )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent', borderWidth: template.showBorder ? '2px' : '0' }}>
             
             {/* Watermark */}
@@ -502,10 +510,7 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
             <SpecimenDetails />
             
             {/* Page 1 Footer */}
-            <div className="flex-grow"></div>
-            <div className="mt-8 flex justify-end">
-                <span className="text-[10px] text-gray-400">Página 1/2</span>
-            </div>
+            <LegalFooter pageText="Página 1/2" />
 
             {/* Modern decorative bottom bar */}
             {template.layout === 'modern' && (
@@ -517,23 +522,21 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
         <div className={cn(
             "bg-white text-black shadow-lg mx-auto flex flex-col relative",
             "w-[215.9mm] min-h-[279.4mm] p-[15mm]",
-            "print:w-[215.9mm] print:min-h-[279.4mm] print:shadow-none print-page"
+            "print:w-[215.9mm] print:h-[279.4mm] print:shadow-none print-page"
         )} style={{ borderColor: template.showBorder ? primaryColor : 'transparent', borderWidth: template.showBorder ? '2px' : '0' }}>
              
              {/* Header repeated on Page 2 */}
              <Header />
              
-             {/* Spacer to push signatures to bottom or center? User said "acomodamos esa seccion del QR en la 2 hoja". 
-                 Usually signatures are at the bottom or after content. Since this page is mostly empty, 
-                 we can put it at the bottom for consistency. */}
              <div className="flex-grow"></div>
              
              <FooterContent />
+             
+             {/* Spacer for LegalFooter */}
+             <div className="h-8"></div>
 
              {/* Page 2 Footer */}
-             <div className="mt-4 flex justify-end">
-                <span className="text-[10px] text-gray-400">Página 2/2</span>
-             </div>
+             <LegalFooter pageText="Página 2/2" />
 
              {/* Modern decorative bottom bar */}
              {template.layout === 'modern' && (
