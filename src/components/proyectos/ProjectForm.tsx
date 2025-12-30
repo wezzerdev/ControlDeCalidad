@@ -246,38 +246,62 @@ export function ProjectForm({ initialData, normas, onSave, onCancel }: ProjectFo
 
           <Card>
             <CardHeader>
-              <CardTitle>Normas Aplicables</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Selecciona las normas que se utilizarán en este proyecto.
-              </p>
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <CardTitle>Normas Aplicables</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Selecciona las normas que se utilizarán en este proyecto.
+                  </p>
+                </div>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar norma por código o nombre..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {normas.map(norma => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-1">
+                {filteredNormas.length === 0 ? (
+                  <div className="col-span-2 text-center py-8 text-muted-foreground">
+                    No se encontraron normas que coincidan con "{searchTerm}"
+                  </div>
+                ) : (
+                  filteredNormas.map(norma => (
                   <div 
                     key={norma.id}
                     className={cn(
-                      "flex items-start p-3 rounded-lg border cursor-pointer transition-colors",
+                      "flex items-start p-3 rounded-lg border cursor-pointer transition-colors hover:shadow-sm",
                       formData.normasAsignadas?.includes(norma.id)
-                        ? "border-primary bg-primary/5"
+                        ? "border-green-500 bg-green-50/50 dark:bg-green-900/10"
                         : "border-border hover:bg-muted/50"
                     )}
                     onClick={() => toggleNorma(norma.id)}
                   >
                     <div className={cn(
-                      "flex h-5 w-5 items-center justify-center rounded border mr-3 mt-0.5",
+                      "flex h-5 w-5 min-w-[1.25rem] items-center justify-center rounded border mr-3 mt-0.5 transition-colors",
                       formData.normasAsignadas?.includes(norma.id)
-                        ? "bg-primary border-primary text-primary-foreground"
+                        ? "bg-green-500 border-green-500 text-white"
                         : "border-input"
                     )}>
-                      {formData.normasAsignadas?.includes(norma.id) && <Check className="h-3 w-3" />}
+                      {formData.normasAsignadas?.includes(norma.id) && <Check className="h-3.5 w-3.5" />}
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{norma.codigo}</p>
-                      <p className="text-xs text-muted-foreground">{norma.nombre}</p>
+                      <p className={cn(
+                        "font-semibold text-sm",
+                        formData.normasAsignadas?.includes(norma.id) ? "text-green-700 dark:text-green-400" : "text-foreground"
+                      )}>{norma.codigo}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2" title={norma.nombre}>
+                        {norma.nombre}
+                      </p>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
               </div>
             </CardContent>
           </Card>
