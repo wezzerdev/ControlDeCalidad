@@ -14,6 +14,23 @@ export default function Certificados() {
   const { muestras, proyectos, normas } = useData();
   const { user } = useAuth();
   const [selectedMuestra, setSelectedMuestra] = useState<Muestra | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // UI Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -212,7 +229,7 @@ export default function Certificados() {
               Genera, visualiza e imprime los informes de ensayos completados.
             </p>
           </div>
-          <Button variant="outline" onClick={handleExport} disabled={filteredMuestras.length === 0}>
+          <Button variant="outline" onClick={handleExport} disabled={filteredMuestras.length === 0} id="btn-export-certs">
              <Download className="mr-2 h-4 w-4" />
              Exportar CSV
           </Button>
@@ -220,7 +237,7 @@ export default function Certificados() {
       )}
 
       {!selectedMuestra && (
-        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm">
+        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="certs-filters">
           <div className="flex-1">
             <Input
               placeholder="Buscar por código o material..."
@@ -289,12 +306,13 @@ export default function Certificados() {
           onBack={() => setSelectedMuestra(null)}
         />
       ) : (
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6 space-y-4">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 space-y-4" id="certs-list">
           <CertificadoList
             muestras={paginatedData}
             proyectos={proyectos}
             normas={normas}
             onView={setSelectedMuestra}
+            viewMode={viewMode}
           />
           <Pagination
             currentPage={currentPage}

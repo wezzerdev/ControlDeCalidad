@@ -30,6 +30,23 @@ export default function ActivityLog() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     fetchLogs();
@@ -120,14 +137,49 @@ export default function ActivityLog() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className={viewMode === 'grid' ? "bg-transparent border-0 shadow-none" : ""}>
+        <CardHeader className={viewMode === 'grid' ? "hidden" : ""}>
           <div className="flex items-center gap-2">
              <Activity className="h-5 w-5 text-primary" />
              <CardTitle>Historial Reciente</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={viewMode === 'grid' ? "p-0" : ""}>
+          {viewMode === 'grid' ? (
+            <div className="space-y-4">
+              {loading ? (
+                  <div className="text-center py-8">Cargando registros...</div>
+              ) : filteredLogs.length === 0 ? (
+                  <div className="text-center py-8 bg-card rounded-lg border">No se encontraron registros.</div>
+              ) : (
+                filteredLogs.map((log) => (
+                  <div key={log.id} className="bg-card rounded-lg border shadow-sm p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-2">
+                         <div className={`p-2 rounded-full bg-muted`}>
+                           <Activity className="h-4 w-4" />
+                         </div>
+                         <div>
+                           <p className="text-sm font-semibold">{log.user_email || log.user_id.substring(0, 8)}</p>
+                           <p className="text-xs text-muted-foreground">{format(new Date(log.created_at), "d MMM yyyy, HH:mm", { locale: es })}</p>
+                         </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold uppercase ${getActionColor(log.action)}`}>
+                        {log.action}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm">
+                      <p><span className="text-muted-foreground">Entidad:</span> <span className="font-medium capitalize">{log.entity}</span></p>
+                      <div className="mt-2 bg-muted/50 p-2 rounded text-xs font-mono overflow-hidden text-ellipsis">
+                        {JSON.stringify(log.details)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -172,6 +224,7 @@ export default function ActivityLog() {
               </TableBody>
             </Table>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

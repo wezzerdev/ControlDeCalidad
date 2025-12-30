@@ -13,6 +13,23 @@ export default function Ensayos() {
   const { muestras, proyectos, normas, updateMuestra } = useData();
   const { user } = useAuth();
   const [selectedMuestra, setSelectedMuestra] = useState<Muestra | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // UI Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +117,7 @@ export default function Ensayos() {
       </div>
 
       {!selectedMuestra && (
-        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm mb-6">
+        <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm mb-6" id="ensayos-filters">
           <div className="flex-1">
             <Input
               placeholder="Buscar por código o material..."
@@ -158,12 +175,13 @@ export default function Ensayos() {
           onCancel={handleCancel}
         />
       ) : (
-        <div className="bg-card rounded-lg shadow-sm border border-border p-6 space-y-4">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6 space-y-4" id="ensayos-list">
           <EnsayoList
             muestras={paginatedData}
             proyectos={proyectos}
             normas={normas}
             onSelect={handleSelectMuestra}
+            viewMode={viewMode}
           />
           <Pagination
             currentPage={currentPage}

@@ -12,6 +12,49 @@ export interface UserPermissions {
   access_notificaciones: boolean;
 }
 
+export const getPermissionsForRole = (role: UserRole): UserPermissions => {
+  switch (role) {
+    case 'administrador':
+    case 'gerente':
+      return {
+        access_proyectos: true,
+        access_muestras: true,
+        access_ensayos: true,
+        access_certificados: true,
+        access_inventarios: true,
+        access_resultados: true,
+        access_reportes: true,
+        access_auditoria: true,
+        access_notificaciones: true
+      };
+    case 'residente':
+      return {
+        access_proyectos: true,
+        access_muestras: true,
+        access_ensayos: false,
+        access_certificados: true,
+        access_inventarios: false,
+        access_resultados: true,
+        access_reportes: false,
+        access_auditoria: false,
+        access_notificaciones: true
+      };
+    case 'tecnico':
+    default:
+      return {
+        access_proyectos: true,
+        access_muestras: true,
+        access_ensayos: true,
+        access_certificados: false,
+        access_inventarios: false,
+        access_resultados: true,
+        access_reportes: false,
+        access_auditoria: false,
+        access_notificaciones: true
+      };
+  }
+};
+
 export interface User {
   id: string;
   email: string;

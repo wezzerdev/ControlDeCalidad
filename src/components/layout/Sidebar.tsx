@@ -14,9 +14,11 @@ import {
   Database,
   ShieldAlert,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTutorial } from '../../hooks/useTutorial';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -25,16 +27,19 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user } = useAuth();
+  const { startTutorial } = useTutorial();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigationGroups = [
     {
+      id: 'nav-dashboard',
       title: null,
       items: [
         { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
       ]
     },
     {
+      id: 'nav-operation',
       title: 'OPERACIÓN',
       items: [
         { name: 'Proyectos', href: '/app/proyectos', icon: Briefcase, permission: 'access_proyectos' },
@@ -45,6 +50,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       ]
     },
     {
+      id: 'nav-management',
       title: 'GESTIÓN',
       items: [
         { name: 'Normas', href: '/app/normas', icon: FileText, roles: ['administrador', 'gerente'] },
@@ -54,6 +60,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       ]
     },
     {
+      id: 'nav-system',
       title: 'SISTEMA',
       items: [
         { name: 'Planes', href: '/app/planes', icon: CreditCard },
@@ -132,7 +139,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             if (filteredItems.length === 0) return null;
 
             return (
-              <div key={groupIndex} className="space-y-1">
+              <div key={groupIndex} id={group.id} className="space-y-1">
                 {group.title && !isCollapsed && (
                   <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 animate-in fade-in duration-300">
                     {group.title}
@@ -171,9 +178,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-1">
+          <button
+            id="start-tutorial-btn"
+            onClick={startTutorial}
+            className={cn(
+              "flex items-center w-full p-2 rounded-lg transition-colors mb-2 group",
+              "bg-primary/10 text-primary hover:bg-primary/20",
+              isCollapsed && "justify-center"
+            )}
+            title={isCollapsed ? "Iniciar Tutorial" : undefined}
+          >
+            <HelpCircle className="h-5 w-5 flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="ml-3 text-sm font-medium">Ayuda / Tutorial</span>
+            )}
+          </button>
+
           <NavLink 
             to="/app/account"
+            id="user-profile-link"
             className={({ isActive }) => cn(
               "flex items-center p-2 rounded-lg transition-colors hover:bg-accent group cursor-pointer",
               isActive ? "bg-accent" : "",

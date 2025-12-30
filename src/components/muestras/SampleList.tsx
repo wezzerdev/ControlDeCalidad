@@ -14,9 +14,10 @@ export interface SampleListProps {
   onEdit: (muestra: Muestra) => void;
   onDelete: (id: string) => void;
   onView: (muestra: Muestra) => void;
+  viewMode?: 'list' | 'grid';
 }
 
-export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onView }: SampleListProps) {
+export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onView, viewMode = 'list' }: SampleListProps) {
   const [qrMuestra, setQrMuestra] = useState<Muestra | null>(null);
 
   const getProjectName = (id: string) => proyectos.find(p => p.id === id)?.nombre || 'Desconocido';
@@ -42,6 +43,104 @@ export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onVi
       img.src = "data:image/svg+xml;base64," + btoa(svgData);
     }
   };
+
+  if (viewMode === 'grid') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {muestras.map((muestra) => (
+          <div key={muestra.id} className="bg-card rounded-lg border border-border shadow-sm p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-lg">{muestra.codigo}</h3>
+                <p className="text-sm text-muted-foreground">{getProjectName(muestra.proyectoId)}</p>
+              </div>
+              <span className={cn(
+                "px-2 py-1 rounded-full text-xs font-medium",
+                muestra.estado === 'aprobado' && "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+                muestra.estado === 'pendiente' && "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+                muestra.estado === 'en_proceso' && "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+                muestra.estado === 'rechazado' && "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+              )}>
+                {muestra.estado.replace('_', ' ').toUpperCase()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-muted-foreground block text-xs">Norma</span>
+                <span className="font-medium">{getNormaCode(muestra.normaId)}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Material</span>
+                <span className="font-medium">{muestra.tipoMaterial}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block text-xs">Fecha</span>
+                <span className="font-medium">{new Date(muestra.fechaRecepcion).toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border mt-2">
+              <Button variant="ghost" size="sm" onClick={() => setQrMuestra(muestra)} title="Ver QR">
+                <QrCode className="h-4 w-4 mr-1" />
+                QR
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => onView(muestra)} title="Registrar Resultados">
+                <ClipboardCheck className="h-4 w-4 mr-1" />
+                Evaluar
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onEdit(muestra)} title="Editar">
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => onDelete(muestra.id)} className="text-destructive hover:text-destructive" title="Eliminar">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        {muestras.length === 0 && (
+          <div className="col-span-full text-center py-12 text-muted-foreground bg-card rounded-lg border border-border">
+            No hay muestras registradas.
+          </div>
+        )}
+
+        <Modal
+          isOpen={!!qrMuestra}
+          onClose={() => setQrMuestra(null)}
+          title={`Código QR - ${qrMuestra?.codigo}`}
+          className="max-w-sm"
+        >
+          <div className="flex flex-col items-center space-y-6 py-4">
+            <div className="bg-white p-4 rounded-lg shadow-inner">
+              {qrMuestra && (
+                <QRCode
+                  value={
+                    qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                      ? qrMuestra.qrCode
+                      : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`
+                  }
+                  size={200}
+                  level="M"
+                />
+              )}
+            </div>
+            <p className="text-sm text-center text-muted-foreground">
+              Escanea este código para acceder rápidamente a los detalles de la muestra <strong>{qrMuestra?.codigo}</strong>.
+            </p>
+            <div className="flex w-full gap-2">
+              <Button className="w-full" variant="outline" onClick={downloadQR}>
+                <Download className="mr-2 h-4 w-4" />
+                Descargar PNG
+              </Button>
+              <Button className="w-full" onClick={() => setQrMuestra(null)}>
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </div>
+    );
+  }
 
   return (
     <>

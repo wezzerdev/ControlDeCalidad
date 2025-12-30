@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/common/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/common/Table';
 import { Button } from '../components/common/Button';
@@ -7,6 +7,7 @@ import { Input } from '../components/common/Input';
 import { Plus, Package, Wrench, FlaskConical, Edit, Trash2, Search, Filter } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { InventoryItem } from '../data/mockData';
+import { cn } from '../lib/utils';
 
 export default function Inventarios() {
   const { inventory, proyectos, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useData();
@@ -29,6 +30,23 @@ export default function Inventarios() {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleEdit = (item: InventoryItem) => {
     setEditingItem(item);
@@ -84,13 +102,13 @@ export default function Inventarios() {
           <h1 className="text-3xl font-bold text-foreground">Gestión de Inventarios</h1>
           <p className="text-muted-foreground mt-2">Control de equipos, materiales y reactivos.</p>
         </div>
-        <Button onClick={() => { setEditingItem(null); setFormData(initialFormState); setIsModalOpen(true); }}>
+        <Button onClick={() => { setEditingItem(null); setFormData(initialFormState); setIsModalOpen(true); }} id="btn-new-item">
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Ítem
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6" id="inventory-stats">
         <Card>
           <CardContent className="p-6 flex items-center justify-between">
             <div>
@@ -126,7 +144,7 @@ export default function Inventarios() {
         </Card>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="inventory-filters">
         <div className="flex-1">
           <Input
             placeholder="Buscar por nombre, ubicación o proyecto..."
@@ -152,11 +170,72 @@ export default function Inventarios() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card id="inventory-list" className={cn(viewMode === 'grid' && "bg-transparent border-0 shadow-none")}>
+        <CardHeader className={cn(viewMode === 'grid' && "hidden")}>
           <CardTitle>Inventario General</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className={cn(viewMode === 'grid' && "p-0")}>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="bg-card rounded-lg border border-border shadow-sm p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{item.nombre}</h3>
+                      <p className="text-sm text-muted-foreground">{item.tipo}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      item.estado === 'Operativo' || item.estado === 'Disponible' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                        : item.estado === 'Mantenimiento' 
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {item.estado}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground block text-xs">Ubicación</span>
+                      <span className="font-medium">
+                        {item.proyectoId ? (
+                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                            <Package className="h-3 w-3" />
+                            {getProjectName(item.proyectoId)}
+                          </span>
+                        ) : (
+                          item.ubicacion
+                        )}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block text-xs">Stock/Info</span>
+                      <span className="font-medium">
+                        {item.tipo === 'Equipo' 
+                          ? `Mant: ${item.ultimoMantenimiento}` 
+                          : `${item.cantidad} ${item.unidad}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border mt-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(item)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredItems.length === 0 && (
+                <div className="col-span-full text-center py-12 text-muted-foreground bg-card rounded-lg border border-border">
+                  No hay ítems registrados.
+                </div>
+              )}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -213,6 +292,7 @@ export default function Inventarios() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 

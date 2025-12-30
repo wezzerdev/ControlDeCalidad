@@ -59,6 +59,22 @@ export function Proyectos() {
     setCurrentPage(1);
   }, [searchTerm, filterStatus, setCurrentPage]);
 
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const handleCreate = () => {
     setSelectedProject(null);
     setView('create');
@@ -126,10 +142,10 @@ export function Proyectos() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="flex items-center space-x-1 bg-muted p-1 rounded-lg border border-border mr-2">
+          <div className="hidden md:flex items-center space-x-1 bg-muted p-1 rounded-lg border border-border mr-2">
             <Button
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-              size="sm"
+              size="icon"
               className="h-8 w-8 p-0"
               onClick={() => setViewMode('list')}
               title="Vista de lista"
@@ -138,7 +154,7 @@ export function Proyectos() {
             </Button>
             <Button
               variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="sm"
+              size="icon"
               className="h-8 w-8 p-0"
               onClick={() => setViewMode('grid')}
               title="Vista de cuadrícula"
@@ -147,19 +163,20 @@ export function Proyectos() {
             </Button>
           </div>
           
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleExport} id="btn-export-csv" className="hidden md:flex">
             Exportar CSV
           </Button>
           {(user?.role === 'administrador' || user?.role === 'gerente') && (
-            <Button onClick={handleCreate}>
+            <Button onClick={handleCreate} id="btn-new-project">
               <Plus className="mr-2 h-4 w-4" />
-              Nuevo Proyecto
+              <span className="hidden md:inline">Nuevo Proyecto</span>
+              <span className="md:hidden">Nuevo</span>
             </Button>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="projects-filters">
         <div className="flex-1">
           <Input
             placeholder="Buscar por nombre o cliente..."
@@ -185,7 +202,7 @@ export function Proyectos() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4" id="projects-list">
         <ProjectList
           proyectos={paginatedData}
           normas={normas}

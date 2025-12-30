@@ -6,6 +6,8 @@ import { Download, Filter, Search, FileText, CheckCircle, XCircle, AlertCircle, 
 import { Input } from '../components/common/Input';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { Pagination } from '../components/common/Pagination';
+import { usePagination } from '../hooks/usePagination';
 import { Modal } from '../components/common/Modal';
 import { cn } from '../lib/utils';
 
@@ -34,6 +36,25 @@ export default function Resultados() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResult, setSelectedResult] = useState<ResultRow | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  React.useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      } else {
+        setViewMode('list'); // Revert to list on desktop
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Derivar la lista plana de resultados
   const allResults: ResultRow[] = useMemo(() => {
@@ -122,6 +143,20 @@ export default function Resultados() {
       ? a.muestraCodigo.localeCompare(b.muestraCodigo) 
       : b.muestraCodigo.localeCompare(a.muestraCodigo);
   });
+
+  // Pagination
+  const { 
+    currentPage, 
+    totalPages, 
+    paginatedData, 
+    goToPage, 
+    setCurrentPage 
+  } = usePagination(filteredResults, 10);
+
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortOrder, setCurrentPage]);
 
   const handleExport = () => {
     const headers = ['ID Muestra', 'Proyecto', 'Ensayo', 'Valor', 'Unidad', 'Límite Min', 'Límite Max', 'Estado', 'Fecha', 'Técnico'];
@@ -349,7 +384,7 @@ export default function Resultados() {
           <h1 className="text-3xl font-bold text-foreground">Gestión de Resultados</h1>
           <p className="text-muted-foreground mt-2">Consulta, validación y reporte de resultados de ensayos.</p>
         </div>
-        <Button variant="outline" onClick={handleExport}>
+        <Button variant="outline" onClick={handleExport} className="hidden md:flex">
           <Download className="mr-2 h-4 w-4" />
           Exportar Datos
         </Button>
@@ -376,8 +411,67 @@ export default function Resultados() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <Card className={cn(viewMode === 'grid' && "bg-transparent border-0 shadow-none")}>
+        <CardContent className={cn("p-0", viewMode === 'grid' && "bg-transparent")}>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedData.map((res) => (
+                <div key={res.id} className="bg-card rounded-lg border border-border shadow-sm p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{res.muestraCodigo}</h3>
+                      <p className="text-sm text-muted-foreground">{res.normaCodigo}</p>
+                    </div>
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1",
+                      res.estado === 'Conforme' 
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+                        : res.estado === 'No Conforme'
+                          ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                          : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                    )}>
+                      {res.estado === 'Conforme' && <CheckCircle className="h-3 w-3" />}
+                      {res.estado === 'No Conforme' && <AlertCircle className="h-3 w-3" />}
+                      {res.estado}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground block text-xs">Proyecto</span>
+                      <span className="font-medium truncate block">{res.proyectoNombre}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-muted-foreground block text-xs">Ensayo</span>
+                        <span className="font-medium">{res.ensayoNombre}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block text-xs">Valor</span>
+                        <span className="font-bold font-mono">{res.valor}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block text-xs">Fecha</span>
+                      <span className="font-medium">{new Date(res.fecha).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-border mt-2">
+                    <Button className="w-full" onClick={() => setSelectedResult(res)}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalles
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {paginatedData.length === 0 && (
+                <div className="col-span-full text-center py-12 text-muted-foreground bg-card rounded-lg border border-border">
+                  No se encontraron resultados que coincidan con la búsqueda.
+                </div>
+              )}
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -391,14 +485,14 @@ export default function Resultados() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredResults.length === 0 ? (
+              {paginatedData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No se encontraron resultados que coincidan con la búsqueda.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredResults.map((res) => (
+                paginatedData.map((res) => (
                   <TableRow key={res.id} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
@@ -438,7 +532,17 @@ export default function Resultados() {
               )}
             </TableBody>
           </Table>
+          )}
         </CardContent>
+        <div className="p-4 border-t border-border">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={goToPage}
+            totalItems={filteredResults.length}
+            itemsPerPage={10}
+          />
+        </div>
       </Card>
     </div>
   );

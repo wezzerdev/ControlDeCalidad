@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { Input } from '../common/Input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../common/Table';
 import { useToast } from '../../context/ToastContext';
-import { User, UserRole, UserPermissions } from '../../data/mockData';
+import { User, UserRole, UserPermissions, getPermissionsForRole } from '../../data/mockData';
 import { Trash2, UserPlus, Shield, Mail, Pencil, X, Briefcase } from 'lucide-react';
 
 export default function TeamManagement() {
@@ -18,17 +18,7 @@ export default function TeamManagement() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [assignedProjectIds, setAssignedProjectIds] = useState<string[]>([]);
   
-  const defaultPermissions: UserPermissions = {
-    access_proyectos: true,
-    access_muestras: true,
-    access_ensayos: true,
-    access_certificados: true,
-    access_inventarios: true,
-    access_resultados: true,
-    access_reportes: true,
-    access_auditoria: true,
-    access_notificaciones: true
-  };
+  const defaultPermissions: UserPermissions = getPermissionsForRole('tecnico');
 
   const initialUserState = {
     name: '',
@@ -45,7 +35,19 @@ export default function TeamManagement() {
   const canAddUser = userCount < maxUsers;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'role') {
+      const newRole = value as UserRole;
+      setFormData({ 
+        ...formData, 
+        role: newRole,
+        // Reset permissions to the new role defaults to ensure consistency
+        permissions: getPermissionsForRole(newRole)
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handlePermissionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,11 +71,18 @@ export default function TeamManagement() {
 
   const startEditing = (user: User) => {
     setEditingUser(user);
+    
+    // Calculate effective permissions: Merge role defaults with stored permissions
+    // This ensures that if the DB has missing keys (implying default), they appear correctly in UI
+    const roleDefaults = getPermissionsForRole(user.role);
+    const storedPermissions = user.permissions || {};
+    const effectivePermissions = { ...roleDefaults, ...storedPermissions };
+
     setFormData({
       name: user.name,
       email: user.email,
       role: user.role,
-      permissions: user.permissions || defaultPermissions
+      permissions: effectivePermissions
     });
     
     // Load assigned projects

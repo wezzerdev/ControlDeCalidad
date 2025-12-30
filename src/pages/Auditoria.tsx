@@ -14,12 +14,29 @@ export default function Auditoria() {
   const { auditLogs, audits, addAudit, updateAudit } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [newAudit, setNewAudit] = useState<Partial<Audit>>({
     type: 'Interna',
     status: 'Programada',
     scheduledDate: '',
     auditor: ''
   });
+
+  // Detect mobile screen size
+  React.useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const filteredLogs = auditLogs.filter(log => 
     log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -156,7 +173,58 @@ export default function Auditoria() {
               Gestión de Auditorías
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto">
+          <CardContent className={cn("flex-1 overflow-y-auto", viewMode === 'grid' && "p-2")}>
+            {viewMode === 'grid' ? (
+              <div className="space-y-4">
+                {sortedAudits.map((audit) => (
+                  <div key={audit.id} className="bg-card rounded-lg border shadow-sm p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                         <div className="font-medium">{audit.type}</div>
+                         {audit.entity && <div className="text-xs text-muted-foreground">{audit.entity}</div>}
+                      </div>
+                      <span className={cn("px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap", getStatusColor(audit.status))}>
+                        {audit.status}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm grid grid-cols-2 gap-2">
+                      <div>
+                        <span className="text-muted-foreground text-xs block">Fecha</span>
+                        <span className="font-medium">{audit.scheduledDate}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground text-xs block">Auditor</span>
+                        <span className="font-medium">{audit.auditor}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t border-border mt-2">
+                      {audit.status === 'Programada' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full h-8 text-xs"
+                          onClick={() => updateAudit(audit.id, { status: 'En Proceso' })}
+                        >
+                          Iniciar
+                        </Button>
+                      )}
+                      {audit.status === 'En Proceso' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full h-8 text-xs text-green-600 hover:text-green-700 border-green-200 bg-green-50 dark:bg-green-900/10"
+                          onClick={() => updateAudit(audit.id, { status: 'Cerrada' })}
+                        >
+                          Cerrar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -207,6 +275,7 @@ export default function Auditoria() {
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </div>

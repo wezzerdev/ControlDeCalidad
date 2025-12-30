@@ -95,7 +95,8 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center">
         <button 
           onClick={onMenuClick}
-          className="p-2 -ml-2 mr-2 text-muted-foreground hover:text-foreground lg:hidden"
+          className="p-3 -ml-2 mr-2 text-muted-foreground hover:text-foreground lg:hidden"
+          aria-label="Abrir menú"
         >
           <Menu className="h-6 w-6" />
         </button>
@@ -103,6 +104,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       <div className="flex items-center space-x-4">
         <button 
+          id="theme-toggle-btn"
           onClick={toggleTheme}
           className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-accent transition-colors"
         >
@@ -111,6 +113,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         
         <div className="relative">
             <button 
+                id="notifications-btn"
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-accent transition-colors relative" 
                 aria-label="Notificaciones"

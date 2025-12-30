@@ -69,10 +69,11 @@ export default function Account() {
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar Tabs */}
-        <div className="w-full md:w-64 space-y-2">
+        <div className="w-full md:w-64 space-y-2" id="account-tabs">
           {filteredTabs.map((tab) => (
             <button
               key={tab.id}
+              id={`tab-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 "w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
@@ -88,10 +89,10 @@ export default function Account() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1">
+        <div className="flex-1" id="account-content">
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              <Card>
+              <Card id="profile-info-card">
                 <CardHeader>
                   <CardTitle>Información de Perfil</CardTitle>
                 </CardHeader>
@@ -145,7 +146,7 @@ export default function Account() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card id="security-card">
                 <CardHeader>
                   <CardTitle>Seguridad</CardTitle>
                 </CardHeader>

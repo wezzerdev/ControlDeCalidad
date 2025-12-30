@@ -13,6 +13,23 @@ export function Normas() {
   const { normas, addNorma, updateNorma, deleteNorma } = useData();
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedNorma, setSelectedNorma] = useState<Norma | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,13 +114,14 @@ export function Normas() {
             Administra las normas técnicas, plantillas y configuraciones de ensayo.
           </p>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} id="btn-new-norma">
           <Plus className="mr-2 h-4 w-4" />
-          Nueva Norma
+          <span className="hidden md:inline">Nueva Norma</span>
+          <span className="md:hidden">Nueva</span>
         </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="normas-filters">
         <div className="flex-1">
           <Input
             placeholder="Buscar por código o nombre..."
@@ -131,12 +149,13 @@ export function Normas() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4" id="normas-list">
         <NormaList
           normas={paginatedData}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleEdit} // Reusing edit for view for now
+          viewMode={viewMode}
         />
         <Pagination
           currentPage={currentPage}

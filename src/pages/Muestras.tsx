@@ -20,6 +20,24 @@ export function Muestras() {
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedSample, setSelectedSample] = useState<Muestra | null>(null);
 
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('grid');
+      }
+    };
+    
+    // Initial check
+    checkMobile();
+
+    // Listen for resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // UI Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProject, setFilterProject] = useState('all');
@@ -139,13 +157,13 @@ export function Muestras() {
             Registra y administra las muestras de materiales para ensayo.
           </p>
         </div>
-        <Button onClick={handleCreate}>
+        <Button onClick={handleCreate} id="btn-new-sample">
           <Plus className="mr-2 h-4 w-4" />
           Nueva Muestra
         </Button>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm">
+      <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="samples-filters">
         <div className="flex-1">
           <Input
             placeholder="Buscar por código, material, ubicación..."
@@ -194,7 +212,7 @@ export function Muestras() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4" id="samples-list">
         <SampleList
           muestras={paginatedData}
           proyectos={proyectos}
@@ -202,6 +220,7 @@ export function Muestras() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleEdit} // Reuse edit for now
+          viewMode={viewMode}
         />
         <Pagination
           currentPage={currentPage}
