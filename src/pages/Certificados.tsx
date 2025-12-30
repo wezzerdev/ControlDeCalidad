@@ -3,11 +3,12 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import { CertificadoList } from '../components/certificados/CertificadoList';
 import { CertificadoView } from '../components/certificados/CertificadoView';
-import { Muestra } from '../data/mockData';
+import { Muestra, SampleTypeCategory } from '../data/mockData';
 import { Input } from '../components/common/Input';
 import { Pagination } from '../components/common/Pagination';
 import { usePagination } from '../hooks/usePagination';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Download } from 'lucide-react';
+import { Button } from '../components/common/Button';
 
 export default function Certificados() {
   const { muestras, proyectos, normas } = useData();
@@ -18,6 +19,7 @@ export default function Certificados() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProject, setFilterProject] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Filter samples based on user role and assigned projects AND UI filters
@@ -47,7 +49,18 @@ export default function Certificados() {
     // 4. Status Filter (Usually certificates are for approved/completed, but we can filter by status too)
     const matchesStatus = filterStatus === 'all' || muestra.estado === filterStatus;
 
-    return matchesSearch && matchesProject && matchesStatus;
+    // 5. Type Filter
+    let matchesType = true;
+    if (filterType !== 'all') {
+        const norma = normas.find(n => n.id === muestra.normaId);
+        if (norma && norma.tiposMuestraCompatibles) {
+            matchesType = norma.tiposMuestraCompatibles.includes(filterType as SampleTypeCategory);
+        } else {
+            matchesType = false;
+        }
+    }
+
+    return matchesSearch && matchesProject && matchesStatus && matchesType;
   })
   .sort((a, b) => {
     return sortOrder === 'asc' 
@@ -67,13 +80,50 @@ export default function Certificados() {
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterProject, filterStatus, setCurrentPage]);
+  }, [searchTerm, filterProject, filterStatus, filterType, setCurrentPage]);
 
   // Get list of projects available to the user for the filter dropdown
   const availableProjects = proyectos.filter(p => {
     if (user?.role === 'administrador' || user?.role === 'gerente') return true;
     return p.usuarios.some(u => u.userId === user?.id);
   });
+
+  const handleExport = () => {
+    if (filteredMuestras.length === 0) return;
+
+    // Define CSV headers
+    const headers = ['Código', 'Proyecto', 'Norma', 'Tipo Material', 'Fecha Ensayo', 'Estado', 'Ubicación', 'Proveedor'];
+    
+    // Convert data to CSV rows
+    const rows = filteredMuestras.map(m => {
+        const proyecto = proyectos.find(p => p.id === m.proyectoId)?.nombre || 'N/A';
+        const norma = normas.find(n => n.id === m.normaId)?.codigo || 'N/A';
+        
+        return [
+            m.codigo,
+            proyecto,
+            norma,
+            m.tipoMaterial,
+            m.fechaEnsayo || 'Pendiente',
+            m.estado,
+            m.ubicacion,
+            m.proveedor
+        ].map(val => `"${val}"`).join(','); // Quote values to handle commas
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `certificados_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-6">
@@ -85,6 +135,10 @@ export default function Certificados() {
               Genera, visualiza e imprime los informes de ensayos completados.
             </p>
           </div>
+          <Button variant="outline" onClick={handleExport} disabled={filteredMuestras.length === 0}>
+             <Download className="mr-2 h-4 w-4" />
+             Exportar CSV
+          </Button>
         </div>
       )}
 
@@ -113,7 +167,22 @@ export default function Certificados() {
               </select>
             </div>
           </div>
-          <div className="w-full md:w-48">
+           <div className="w-full md:w-48">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="all">Todos los Tipos</option>
+              <option value="Concreto">Concreto</option>
+              <option value="Suelo">Suelo</option>
+              <option value="Agregados">Agregados</option>
+              <option value="Acero">Acero</option>
+              <option value="Asfalto">Asfalto</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div className="w-full md:w-40">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
