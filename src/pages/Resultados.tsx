@@ -390,7 +390,7 @@ export default function Resultados() {
         </Button>
       </div>
 
-      <div className="flex gap-4 flex-col md:flex-row">
+      <div className="flex gap-4 flex-col md:flex-row" id="results-filters">
         <div className="flex-1">
           <Input 
             icon={<Search className="h-4 w-4" />} 
@@ -411,7 +411,7 @@ export default function Resultados() {
         </div>
       </div>
 
-      <Card className={cn(viewMode === 'grid' && "bg-transparent border-0 shadow-none")}>
+      <Card className={cn(viewMode === 'grid' && "bg-transparent border-0 shadow-none")} id="results-list">
         <CardContent className={cn("p-0", viewMode === 'grid' && "bg-transparent")}>
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

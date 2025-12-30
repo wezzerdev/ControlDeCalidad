@@ -41,7 +41,7 @@ export function useTutorial() {
           element: '#btn-export-csv',
           popover: {
             title: 'Exportar Datos',
-            description: 'Descarga el listado completo de proyectos en formato CSV para análisis externo.',
+            description: 'Descarga el listado completo de proyectos en formato CSV. (Solo visible en escritorio)',
             side: "bottom",
             align: 'end'
           }
@@ -114,6 +114,33 @@ export function useTutorial() {
           popover: {
             title: 'Selección de Muestra',
             description: 'Haz clic en una muestra de la lista para abrir el formulario de captura de datos y registrar los resultados.',
+            side: "top"
+          }
+        }
+      ]};
+    } else if (pathname.startsWith('/app/resultados')) {
+      return {
+        key: 'resultados',
+        steps: [
+        {
+          popover: {
+            title: 'Gestión de Resultados',
+            description: 'Consulta, validación y reporte de resultados de ensayos.'
+          }
+        },
+        {
+          element: '#results-filters',
+          popover: {
+            title: 'Filtros',
+            description: 'Busca resultados específicos por código, proyecto o tipo de ensayo.',
+            side: "bottom"
+          }
+        },
+        {
+          element: '#results-list',
+          popover: {
+            title: 'Listado de Resultados',
+            description: 'Visualiza los valores obtenidos. En móvil verás tarjetas con el resumen y estado de conformidad.',
             side: "top"
           }
         }
@@ -349,6 +376,27 @@ export function useTutorial() {
   const startTutorial = useCallback(() => {
     const { steps, key } = getTutorialConfig(location.pathname);
 
+    // Filter out steps that point to elements not currently visible in the viewport
+    // This is a simple heuristic: if the element exists and is visible (offsetParent !== null)
+    // driver.js handles missing elements gracefully usually, but for better UX we filter.
+    // However, since we are in a hook, DOM might not be ready. 
+    // We'll let driver.js handle it, but maybe provide fallback selectors or conditional steps in config.
+    
+    // Better approach: Modify steps dynamically based on screen width
+    const isMobile = window.innerWidth < 768;
+    const visibleSteps = steps.filter(step => {
+        if (!step.element) return true; // Steps without element (like intro) are always shown
+        
+        // Specific hidden elements in mobile
+        if (isMobile && (
+            step.element === '#btn-export-csv' || 
+            step.element === '#btn-export-certs'
+        )) {
+            return false;
+        }
+        return true;
+    });
+
     const driverObj = driver({
       showProgress: true,
       animate: true,
@@ -357,7 +405,7 @@ export function useTutorial() {
       prevBtnText: '← Anterior',
       doneBtnText: '¡Entendido!',
       progressText: 'Paso {{current}} de {{total}}',
-      steps: steps,
+      steps: visibleSteps,
       onDestroyed: () => {
         // Mark as seen when closed or finished
         if (key) {
