@@ -184,47 +184,50 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
 
   const updateCompanyInfo = async (info: CompanyInfo) => {
     try {
-      // First check if a row exists
-      const { data: existing } = await supabase
-        .from('company_settings')
-        .select('id')
-        .limit(1)
-        .single();
+      if (!user) return;
 
-      let error;
-      if (existing) {
-        const { error: updateError } = await supabase
-          .from('company_settings')
-          .update({
-            name: info.name,
-            address: info.address,
-            city: info.city,
-            phone: info.phone,
-            email: info.email,
-            logo_url: info.logoUrl,
-            plan_id: info.planId
-          })
-          .eq('id', existing.id);
-        error = updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('company_settings')
-          .insert({
-            name: info.name,
-            address: info.address,
-            city: info.city,
-            phone: info.phone,
-            email: info.email,
-            logo_url: info.logoUrl,
-            plan_id: info.planId
-          });
-        error = insertError;
+      // Ensure we are updating the correct company linked to the user
+      // Or if admin, the company they are managing
+      
+      let targetCompanyId = info.id;
+      
+      if (!targetCompanyId) {
+          // Try to resolve from profile if not provided in info object
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('company_id')
+            .eq('id', user.id)
+            .single();
+            
+          targetCompanyId = profile?.company_id;
       }
 
-      if (error) throw error;
-      setCompanyInfo(info);
+      if (!targetCompanyId) {
+          console.error("No company ID found to update");
+          return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('company_settings')
+        .update({
+          name: info.name,
+          address: info.address,
+          city: info.city,
+          phone: info.phone,
+          email: info.email,
+          logo_url: info.logoUrl,
+          plan_id: info.planId
+        })
+        .eq('id', targetCompanyId);
+
+      if (updateError) throw updateError;
+      
+      // Update local state immediately for UI responsiveness
+      setCompanyInfo({ ...info, id: targetCompanyId });
+      
     } catch (error) {
       console.error('Error updating company info', error);
+      throw error;
     }
   };
 

@@ -54,7 +54,7 @@ export default function Settings() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateCompanyInfo(formData);
-    addToast('Información de la empresa actualizada correctamente', 'success');
+    addToast('Información de la empresa actualizada correctamente. Los cambios se reflejarán en los próximos informes y QR.', 'success');
   };
   
   if (!companyInfo) {
