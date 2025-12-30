@@ -126,12 +126,11 @@ export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onVi
             {qrMuestra && (
               <QRCode
                 id="qr-code-svg"
-                value={JSON.stringify({
-                  id: qrMuestra.id,
-                  codigo: qrMuestra.codigo,
-                  proyecto: getProjectName(qrMuestra.proyectoId),
-                  material: qrMuestra.tipoMaterial
-                })}
+                value={
+                  qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                    ? qrMuestra.qrCode
+                    : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`
+                }
                 size={200}
                 level="M"
               />

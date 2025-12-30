@@ -496,9 +496,9 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
             <CardContent className="space-y-6 flex flex-col items-center">
               <div className="bg-white p-4 rounded-lg border border-border flex items-center justify-center relative">
                 <QRCode 
-                    value={initialData?.qrCode && initialData.qrCode !== 'pending' && !initialData.qrCode.startsWith('QR-') 
+                    value={initialData?.qrCode && initialData.qrCode.startsWith('http') 
                         ? initialData.qrCode 
-                        : 'https://constru-lab-saas.vercel.app'} 
+                        : 'https://controldecalidad.vercel.app'} 
                     size={128} 
                     className={!initialData?.id ? "opacity-20 blur-sm" : ""}
                 />
