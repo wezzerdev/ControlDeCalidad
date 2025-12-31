@@ -24,7 +24,7 @@ export function MobileFloatingActions({
       {onAdd && (
         <Button
           size="icon"
-          className="h-14 w-14 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white transition-transform hover:scale-105 active:scale-95"
+          className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-transform hover:scale-105 active:scale-95"
           onClick={onAdd}
           title={addLabel}
         >
