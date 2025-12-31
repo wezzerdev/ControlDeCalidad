@@ -151,7 +151,7 @@ export function NormaEditor({ initialData, onSave, onCancel, readOnly = false }:
         </div>
       </div>
 
-      <MobileFormActions onCancel={onCancel} showSave={!readOnly} />
+      <MobileFormActions onCancel={onCancel} hideSave={readOnly} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-1 space-y-6">

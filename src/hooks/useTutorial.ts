@@ -17,7 +17,7 @@ export function useTutorial() {
     if (user?.id) {
         try {
             const currentPrefs = user.preferences || {};
-            const tutorialsSeen = currentPrefs.tutorials_seen || {};
+            const tutorialsSeen = user.preferences?.tutorials_seen || {};
             
             // Don't update if already true in DB to save bandwidth
             if (tutorialsSeen[key]) return;
