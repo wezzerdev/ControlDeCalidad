@@ -314,7 +314,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     <CompanyContext.Provider value={{ 
       companyInfo, 
       users, 
-      loading,
+      isLoading,
       updateCompanyInfo, 
       updatePlan,
       addUser,
