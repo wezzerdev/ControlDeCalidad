@@ -9,6 +9,7 @@ import { Input } from '../components/common/Input';
 import { Pagination } from '../components/common/Pagination';
 import { usePagination } from '../hooks/usePagination';
 import { Plus, Search, Filter, LayoutGrid, List } from 'lucide-react';
+import { MobileFloatingActions } from '../components/common/MobileFloatingActions';
 
 export function Proyectos() {
   const { proyectos, normas, inventory, addProyecto, updateProyecto, deleteProyecto } = useData();
@@ -167,14 +168,18 @@ export function Proyectos() {
             Exportar CSV
           </Button>
           {(user?.role === 'administrador' || user?.role === 'gerente') && (
-            <Button onClick={handleCreate} id="btn-new-project">
+            <Button onClick={handleCreate} id="btn-new-project" className="hidden md:flex">
               <Plus className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">Nuevo Proyecto</span>
-              <span className="md:hidden">Nuevo</span>
+              <span>Nuevo Proyecto</span>
             </Button>
           )}
         </div>
       </div>
+
+      <MobileFloatingActions 
+        onAdd={(user?.role === 'administrador' || user?.role === 'gerente') ? handleCreate : undefined}
+        onExport={handleExport}
+      />
 
       <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="projects-filters">
         <div className="flex-1">

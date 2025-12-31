@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { useToast } from '../../context/ToastContext';
 import { User, UserRole, UserPermissions, getPermissionsForRole } from '../../data/mockData';
 import { Trash2, UserPlus, Shield, Mail, Pencil, X, Briefcase } from 'lucide-react';
+import { MobileFloatingActions } from '../common/MobileFloatingActions';
 
 export default function TeamManagement() {
   const { companyInfo, users, addUser, updateUser, removeUser } = useCompany();
@@ -374,109 +375,219 @@ export default function TeamManagement() {
             </div>
           )}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuario</TableHead>
-                <TableHead>Rol</TableHead>
-                <TableHead>Proyectos</TableHead>
-                <TableHead>Permisos</TableHead>
-                <TableHead>Fecha Registro</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => {
-                const userProjects = getUserProjects(user.id);
-                return (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
-                          {user.avatar ? (
-                            <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-                          ) : (
-                            user.name.charAt(0)
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-xs text-muted-foreground flex items-center">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {user.email}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Shield className="h-3 w-3 text-muted-foreground" />
-                        <span className="capitalize">{user.role}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col space-y-1">
-                        {user.role === 'administrador' || user.role === 'gerente' ? (
-                          <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded w-fit">Acceso Total</span>
-                        ) : userProjects.length > 0 ? (
-                          <div className="flex flex-col gap-1">
-                            {userProjects.slice(0, 2).map(p => (
-                              <div key={p.id} className="flex items-center text-xs text-muted-foreground">
-                                <Briefcase className="h-3 w-3 mr-1" />
-                                <span className="truncate max-w-[150px]">{p.nombre}</span>
-                              </div>
-                            ))}
-                            {userProjects.length > 2 && (
-                              <span className="text-xs text-muted-foreground pl-4">+{userProjects.length - 2} más...</span>
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Proyectos</TableHead>
+                  <TableHead>Permisos</TableHead>
+                  <TableHead>Fecha Registro</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => {
+                  const userProjects = getUserProjects(user.id);
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs overflow-hidden">
+                            {user.avatar ? (
+                              <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                            ) : (
+                              user.name.charAt(0)
                             )}
                           </div>
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              <Mail className="h-3 w-3 mr-1" />
+                              {user.email}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Shield className="h-3 w-3 text-muted-foreground" />
+                          <span className="capitalize">{user.role}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col space-y-1">
+                          {user.role === 'administrador' || user.role === 'gerente' ? (
+                            <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded w-fit">Acceso Total</span>
+                          ) : userProjects.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              {userProjects.slice(0, 2).map(p => (
+                                <div key={p.id} className="flex items-center text-xs text-muted-foreground">
+                                  <Briefcase className="h-3 w-3 mr-1" />
+                                  <span className="truncate max-w-[150px]">{p.nombre}</span>
+                                </div>
+                              ))}
+                              {userProjects.length > 2 && (
+                                <span className="text-xs text-muted-foreground pl-4">+{userProjects.length - 2} más...</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Sin asignar</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-1">
+                          {user.permissions?.access_proyectos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" title="Proyectos">P</span>}
+                          {user.permissions?.access_muestras && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800" title="Muestras">M</span>}
+                          {user.permissions?.access_ensayos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800" title="Ensayos">E</span>}
+                          {user.permissions?.access_certificados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Certificados">C</span>}
+                          {user.permissions?.access_resultados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800" title="Resultados">R</span>}
+                          {user.permissions?.access_inventarios && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800" title="Inventarios">I</span>}
+                          {user.permissions?.access_reportes && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800" title="Reportes">Rp</span>}
+                          {user.permissions?.access_auditoria && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800" title="Auditoría">A</span>}
+                          {(!user.permissions || Object.values(user.permissions).every(p => !p)) && <span className="text-xs text-muted-foreground">Ninguno</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => startEditing(user)}
+                            className="text-muted-foreground hover:text-primary"
+                            disabled={user.isOwner} // Prevent editing owner
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemove(user.id)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={user.isOwner || (user.role === 'administrador' && users.filter(u => u.role === 'administrador').length === 1)} // Prevent deleting owner or last admin
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Grid View */}
+          <div className="md:hidden grid grid-cols-1 gap-4">
+            {users.map((user) => {
+              const userProjects = getUserProjects(user.id);
+              return (
+                <div key={user.id} className="bg-card rounded-lg p-4 shadow-sm border border-border space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm overflow-hidden">
+                        {user.avatar ? (
+                          <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
                         ) : (
-                          <span className="text-xs text-muted-foreground italic">Sin asignar</span>
+                          user.name.charAt(0)
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        {user.permissions?.access_proyectos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" title="Proyectos">P</span>}
-                        {user.permissions?.access_muestras && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800" title="Muestras">M</span>}
-                        {user.permissions?.access_ensayos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800" title="Ensayos">E</span>}
-                        {user.permissions?.access_certificados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Certificados">C</span>}
-                        {user.permissions?.access_resultados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800" title="Resultados">R</span>}
-                        {user.permissions?.access_inventarios && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800" title="Inventarios">I</span>}
-                        {(!user.permissions || Object.values(user.permissions).every(p => !p)) && <span className="text-xs text-muted-foreground">Ninguno</span>}
+                      <div>
+                        <div className="font-semibold flex items-center gap-2">
+                          {user.name}
+                          {user.isOwner && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800">
+                              Principal
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground flex items-center mt-0.5">
+                          <Mail className="h-3 w-3 mr-1" />
+                          <span className="truncate max-w-[180px]">{user.email}</span>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditing(user)}
-                          className="text-muted-foreground hover:text-primary"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemove(user.id)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          disabled={user.role === 'administrador' && users.filter(u => u.role === 'administrador').length === 1} // Prevent deleting last admin
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                    </div>
+                    <div className="flex items-center space-x-1 bg-muted px-2 py-1 rounded-full">
+                      <Shield className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium capitalize">{user.role}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm border-t border-border pt-3">
+                    <div>
+                      <span className="text-muted-foreground text-xs block mb-1">Proyectos</span>
+                      {user.role === 'administrador' || user.role === 'gerente' ? (
+                        <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded w-fit">Acceso Total</span>
+                      ) : userProjects.length > 0 ? (
+                        <span className="text-xs">{userProjects.length} asignados</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">Sin asignar</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground text-xs block mb-1">Registro</span>
+                      <span className="text-xs">{new Date(user.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-muted-foreground text-xs block mb-2">Permisos</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {user.permissions?.access_proyectos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">Proyectos</span>}
+                      {user.permissions?.access_muestras && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Muestras</span>}
+                      {user.permissions?.access_ensayos && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">Ensayos</span>}
+                      {user.permissions?.access_certificados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Certif.</span>}
+                      {user.permissions?.access_resultados && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">Result.</span>}
+                      {user.permissions?.access_inventarios && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">Inv.</span>}
+                      {user.permissions?.access_reportes && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-cyan-100 text-cyan-800">Reportes</span>}
+                      {user.permissions?.access_auditoria && <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800">Auditoría</span>}
+                      {(!user.permissions || Object.values(user.permissions).every(p => !p)) && <span className="text-xs text-muted-foreground">Ninguno</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => startEditing(user)}
+                      className="text-muted-foreground hover:text-primary h-8"
+                      disabled={user.isOwner}
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRemove(user.id)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/20 h-8"
+                      disabled={user.isOwner || (user.role === 'administrador' && users.filter(u => u.role === 'administrador').length === 1)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                      Eliminar
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
+      
+      {/* Mobile Floating Action Button - Moved outside CardContent to prevent overflow issues */}
+      {!isAdding && (
+        <MobileFloatingActions
+          onAdd={() => setIsAdding(true)}
+          addLabel="Agregar Usuario"
+          className="md:hidden"
+        />
+      )}
     </div>
   );
 }

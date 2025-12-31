@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   ExternalLink,
   User,
-  Printer
+  Printer,
+  Camera
 } from 'lucide-react';
 import { CertificateTemplate } from '../components/certificados/CertificateTemplate';
 import { CompanyInfo } from '../context/CompanyContext';
@@ -80,7 +81,8 @@ export default function Verification() {
              fechaRecepcion: result.fecha_recepcion,
              fechaTermino: result.fecha_termino,
              fechaEnsayo: result.fecha_ensayo,
-             tipoMaterial: result.tipo_material
+             tipoMaterial: result.tipo_material,
+             evidenciaFotografica: result.evidencia_fotografica
           });
 
           // Fetch company info based on tecnico_id
@@ -357,6 +359,23 @@ export default function Verification() {
                             </div>
                           ))}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Evidence Section */}
+                {data.evidenciaFotografica && data.evidenciaFotografica.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Camera className="h-4 w-4 text-primary" />
+                        <h3 className="font-bold text-sm uppercase">Evidencia Fotográfica</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {data.evidenciaFotografica.map((foto: string, index: number) => (
+                            <div key={index} className="aspect-video rounded-lg overflow-hidden border border-border bg-muted">
+                                <img src={foto} alt={`Evidencia ${index + 1}`} className="w-full h-full object-cover" />
+                            </div>
+                        ))}
                     </div>
                   </div>
                 )}

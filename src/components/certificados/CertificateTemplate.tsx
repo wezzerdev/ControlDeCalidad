@@ -391,6 +391,23 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
     return null;
   };
 
+  const PhotoEvidence = () => {
+    if (!muestra.evidenciaFotografica || muestra.evidenciaFotografica.length === 0) return null;
+
+    return (
+      <div className="mb-6">
+        <h3 className="font-bold border-b border-gray-200 pb-1 mb-3 uppercase text-xs">Evidencia Fotográfica</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {muestra.evidenciaFotografica.slice(0, 4).map((foto, index) => (
+            <div key={index} className="aspect-video rounded border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
+               <img src={foto} alt={`Evidencia ${index+1}`} className="max-w-full max-h-full object-contain" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const LegalFooter = ({ pageText }: { pageText: string }) => (
     <div className="absolute bottom-[15mm] left-[15mm] right-[15mm]">
         <div className="flex justify-between items-end text-[8px] text-gray-400 border-t border-gray-100 pt-2">
@@ -528,7 +545,9 @@ export function CertificateTemplate({ muestra, proyecto, norma, companyInfo, tem
              {/* Header repeated on Page 2 */}
              <Header />
              
-             <div className="flex-grow"></div>
+             <div className="flex-grow">
+               <PhotoEvidence />
+             </div>
              
              <FooterContent />
              

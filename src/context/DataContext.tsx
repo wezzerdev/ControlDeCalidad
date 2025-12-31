@@ -151,6 +151,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         proveedor: m.proveedor,
         qrCode: m.qr_code,
         resultados: m.resultados,
+        evidenciaFotografica: m.evidencia_fotografica,
         estado: m.estado,
         tecnicoId: m.tecnico_id,
         createdAt: m.created_at
@@ -344,6 +345,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       qr_code: 'pending', // Placeholder
       estado: muestra.estado,
       resultados: muestra.resultados || {},
+      evidencia_fotografica: muestra.evidenciaFotografica || [],
       fecha_recepcion: muestra.fechaRecepcion,
       fecha_ensayo: muestra.fechaEnsayo,
       fecha_termino: muestra.fechaTermino
@@ -375,6 +377,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const payload: any = {};
     if (updatedMuestra.estado) payload.estado = updatedMuestra.estado;
     if (updatedMuestra.resultados) payload.resultados = updatedMuestra.resultados;
+    if (updatedMuestra.evidenciaFotografica) payload.evidencia_fotografica = updatedMuestra.evidenciaFotografica;
     if (updatedMuestra.fechaEnsayo) payload.fecha_ensayo = updatedMuestra.fechaEnsayo;
     if (updatedMuestra.fechaTermino) payload.fecha_termino = updatedMuestra.fechaTermino;
     

@@ -71,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           permissions: finalPermissions,
           preferences: data.preferences,
           createdAt: data.created_at,
-          lastLogin: data.last_login || new Date().toISOString()
+          lastLogin: data.last_login || new Date().toISOString(),
+          isOwner: data.is_owner // Map from DB
         };
         setUser(mappedUser);
       }

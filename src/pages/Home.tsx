@@ -126,8 +126,8 @@ export default function Home() {
         {/* Background gradient blob */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl z-0 opacity-30 pointer-events-none">
           <div className="absolute top-20 left-20 w-72 h-72 bg-primary rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob"></div>
-          <div className="absolute top-20 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 right-20 w-72 h-72 bg-primary/80 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-primary/60 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
         </div>
       </section>
 
@@ -188,7 +188,7 @@ export default function Home() {
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <div className="bg-background p-2 rounded-lg border border-border h-fit">
-                    <Lock className="h-6 w-6 text-green-500" />
+                    <Lock className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h4 className="font-bold text-foreground">Encriptación de Extremo a Extremo</h4>
@@ -198,7 +198,7 @@ export default function Home() {
                 
                 <div className="flex gap-4">
                   <div className="bg-background p-2 rounded-lg border border-border h-fit">
-                    <Server className="h-6 w-6 text-blue-500" />
+                    <Server className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h4 className="font-bold text-foreground">Respaldos Automáticos</h4>
@@ -208,7 +208,7 @@ export default function Home() {
 
                 <div className="flex gap-4">
                   <div className="bg-background p-2 rounded-lg border border-border h-fit">
-                    <Users className="h-6 w-6 text-purple-500" />
+                    <Users className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <h4 className="font-bold text-foreground">Control de Acceso Granular</h4>
@@ -266,17 +266,17 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
-              icon={<FileText className="h-8 w-8 text-blue-500" />}
+              icon={<FileText className="h-8 w-8 text-primary" />}
               title="Normas Digitales"
               description="Plantillas pre-cargadas para normas NMX y ACI. Validación automática de resultados contra límites especificados."
             />
             <FeatureCard 
-              icon={<Shield className="h-8 w-8 text-green-500" />}
+              icon={<Shield className="h-8 w-8 text-primary" />}
               title="Trazabilidad Total"
               description="Generación de códigos QR para cada muestra. Rastrea ubicación, estado y responsable en tiempo real."
             />
             <FeatureCard 
-              icon={<BarChart2 className="h-8 w-8 text-purple-500" />}
+              icon={<BarChart2 className="h-8 w-8 text-primary" />}
               title="Informes Automáticos"
               description="Genera certificados de calidad en PDF con un solo clic. Firmas digitales y formatos personalizables."
             />

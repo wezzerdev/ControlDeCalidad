@@ -3,12 +3,13 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X, PlusCircle, Trash2 } from 'lucide-react';
+import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X, PlusCircle, Trash2, Camera, Image as ImageIcon } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../common/Modal'; 
+import { compressImage } from '../../lib/utils';
 
 interface SampleFormProps {
   initialData?: Muestra | null;
@@ -47,6 +48,9 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
   // Dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [displayValue, setDisplayValue] = useState('');
+
+  // Photos state
+  const [photos, setPhotos] = useState<string[]>([]);
 
   // Multi-sample state
   const [specimenRows, setSpecimenRows] = useState<Record<string, any>[]>([{}]);
@@ -231,6 +235,11 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
         ubicacion: location
       });
       setGpsLocation(gps);
+      
+      // Init photos
+      if (initialData.evidenciaFotografica) {
+          setPhotos(initialData.evidenciaFotografica);
+      }
 
       // Try to infer category from existing material or norma
       if (initialData.normaId) {
@@ -317,6 +326,48 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       setGeoLoading(false);
       addToast('Geolocalización no soportada en este navegador.', 'error');
     }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+        const files = Array.from(e.target.files);
+        
+        if (photos.length + files.length > 4) {
+            addToast('Máximo 4 imágenes permitidas por muestra.', 'error');
+            return;
+        }
+
+        const newPhotos: string[] = [];
+        let errorOccurred = false;
+
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit before compression
+                addToast(`La imagen ${file.name} es demasiado grande (Max 10MB)`, 'error');
+                errorOccurred = true;
+                continue;
+            }
+
+            try {
+                const compressed = await compressImage(file);
+                newPhotos.push(compressed);
+            } catch (err) {
+                console.error("Error compressing image:", err);
+                addToast(`Error al procesar la imagen ${file.name}`, 'error');
+                errorOccurred = true;
+            }
+        }
+
+        if (newPhotos.length > 0) {
+            setPhotos(prev => [...prev, ...newPhotos]);
+            if (!errorOccurred) {
+                addToast(`${newPhotos.length} imagen(es) agregada(s) y optimizada(s).`, 'success');
+            }
+        }
+    }
+  };
+
+  const removePhoto = (index: number) => {
+      setPhotos(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDynamicFieldChange = (fieldId: string, value: any) => {
@@ -438,6 +489,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       estado: (formData.estado as 'pendiente' | 'en_proceso' | 'aprobado' | 'rechazado') || 'pendiente',
       tecnicoId: user?.id || '',
       resultados: consolidatedResults,
+      evidenciaFotografica: photos,
       createdAt: initialData?.createdAt || new Date().toISOString()
     };
     onSave(muestraToSave);
@@ -671,6 +723,55 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                    value={formData.fechaTermino}
                    onChange={handleChange}
                  />
+              </div>
+
+              <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-foreground">Evidencia Fotográfica</label>
+                    <span className={`text-xs ${photos.length >= 4 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
+                        {photos.length} / 4 fotos
+                    </span>
+                  </div>
+                  
+                  {photos.length < 4 ? (
+                      <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
+                          <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              id="photo-upload"
+                              disabled={photos.length >= 4}
+                          />
+                          <label htmlFor="photo-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                              <Camera className="h-8 w-8 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground font-medium">Click para subir fotos de la muestra</span>
+                              <span className="text-xs text-muted-foreground">Formato: JPG, PNG (Max 10MB) - Se optimizarán automáticamente</span>
+                          </label>
+                      </div>
+                  ) : (
+                      <div className="border border-border rounded-lg p-4 bg-muted/30 text-center">
+                          <p className="text-sm text-muted-foreground">Has alcanzado el límite máximo de 4 fotografías.</p>
+                      </div>
+                  )}
+                  
+                  {photos.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                          {photos.map((photo, index) => (
+                              <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
+                                  <img src={photo} alt={`Evidencia ${index + 1}`} className="w-full h-full object-cover" />
+                                  <button
+                                      type="button"
+                                      onClick={() => removePhoto(index)}
+                                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                      <X className="h-3 w-3" />
+                                  </button>
+                              </div>
+                          ))}
+                      </div>
+                  )}
               </div>
 
               {selectedNormaDetails && selectedNormaDetails.campos && selectedNormaDetails.campos.length > 0 && (

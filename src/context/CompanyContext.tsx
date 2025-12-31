@@ -173,7 +173,8 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
           preferences: u.preferences,
           createdAt: u.created_at,
           lastLogin: u.last_login,
-          companyId: u.company_id
+          companyId: u.company_id,
+          isOwner: u.is_owner
         }));
         setUsers(mappedUsers);
       }
@@ -280,6 +281,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
     } catch (error) {
       console.error('Error updating user', error);
+      throw error; // Propagate error to caller
     }
   };
 
@@ -307,6 +309,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     <CompanyContext.Provider value={{ 
       companyInfo, 
       users, 
+      isLoading,
       updateCompanyInfo, 
       updatePlan,
       addUser,

@@ -9,6 +9,7 @@ import { Pagination } from '../components/common/Pagination';
 import { usePagination } from '../hooks/usePagination';
 import { Search, Filter, Download } from 'lucide-react';
 import { Button } from '../components/common/Button';
+import { MobileFloatingActions } from '../components/common/MobileFloatingActions';
 
 export default function Certificados() {
   const { muestras, proyectos, normas } = useData();
@@ -229,11 +230,18 @@ export default function Certificados() {
               Genera, visualiza e imprime los informes de ensayos completados.
             </p>
           </div>
-          <Button variant="outline" onClick={handleExport} disabled={filteredMuestras.length === 0} id="btn-export-certs">
+          <Button variant="outline" onClick={handleExport} disabled={filteredMuestras.length === 0} id="btn-export-certs" className="hidden md:flex">
              <Download className="mr-2 h-4 w-4" />
              Exportar CSV
           </Button>
         </div>
+      )}
+
+      {!selectedMuestra && (
+        <MobileFloatingActions 
+          onExport={handleExport}
+          exportLabel="Exportar CSV"
+        />
       )}
 
       {!selectedMuestra && (

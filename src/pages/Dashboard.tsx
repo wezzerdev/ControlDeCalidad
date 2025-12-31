@@ -85,30 +85,61 @@ export function Dashboard() {
 
   const data = getLast7Days();
 
-  // Mock data for analytics (migrated from Reportes page)
-  const dataEnsayo = [
-    { name: 'Ene', Conforme: 40, NoConforme: 24 },
-    { name: 'Feb', Conforme: 30, NoConforme: 13 },
-    { name: 'Mar', Conforme: 20, NoConforme: 58 },
-    { name: 'Abr', Conforme: 27, NoConforme: 39 },
-    { name: 'May', Conforme: 18, NoConforme: 48 },
-  ];
+  // Calculate real analytics data from samples
+  const dataEnsayo = React.useMemo(() => {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const today = new Date();
+    const result = [];
 
-  const dataPie = [
-    { name: 'Concreto', value: 400 },
-    { name: 'Acero', value: 300 },
-    { name: 'Suelos', value: 300 },
-    { name: 'Agregados', value: 200 },
-  ];
+    // Get last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthIndex = d.getMonth();
+      const year = d.getFullYear();
+      const monthName = months[monthIndex];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+      const samplesInMonth = muestras.filter(m => {
+        const date = new Date(m.fechaRecepcion);
+        return date.getMonth() === monthIndex && date.getFullYear() === year;
+      });
+
+      const conforme = samplesInMonth.filter(m => m.estado === 'aprobado').length;
+      const noConforme = samplesInMonth.filter(m => m.estado === 'rechazado').length;
+
+      result.push({
+        name: monthName,
+        Conforme: conforme,
+        NoConforme: noConforme
+      });
+    }
+    return result;
+  }, [muestras]);
+
+  const dataPie = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    muestras.forEach(m => {
+      const type = m.tipoMaterial || 'Otros';
+      counts[type] = (counts[type] || 0) + 1;
+    });
+
+    const result = Object.entries(counts).map(([name, value]) => ({ name, value }));
+    
+    // Return empty state if no data
+    if (result.length === 0) {
+      return [{ name: 'Sin datos', value: 1 }];
+    }
+    
+    return result;
+  }, [muestras]);
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
       
       {/* System Status Check */}
-      {user?.role === 'administrador' && !companyInfo.id && (
+      {user?.role === 'administrador' && !isCompanyLoading && !companyInfo.id && (
         <Card className="border-red-500 bg-red-50 dark:bg-red-900/10">
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">

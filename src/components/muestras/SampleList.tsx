@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma } from '../../data/mockData';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../common/Table';
 import { Button } from '../common/Button';
 import { Modal } from '../common/Modal';
-import { Edit, Trash2, QrCode, ClipboardCheck, Download } from 'lucide-react';
+import { Edit, Trash2, QrCode, ClipboardCheck, Download, ExternalLink } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import QRCode from 'react-qr-code';
 
@@ -114,6 +114,7 @@ export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onVi
             <div className="bg-white p-4 rounded-lg shadow-inner">
               {qrMuestra && (
                 <QRCode
+                  id="qr-code-svg"
                   value={
                     qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
                       ? qrMuestra.qrCode
@@ -124,9 +125,28 @@ export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onVi
                 />
               )}
             </div>
-            <p className="text-sm text-center text-muted-foreground">
-              Escanea este código para acceder rápidamente a los detalles de la muestra <strong>{qrMuestra?.codigo}</strong>.
-            </p>
+            <div className="text-center space-y-3 w-full">
+              <p className="text-sm text-muted-foreground">
+                Escanea este código para acceder rápidamente a los detalles de la muestra <strong>{qrMuestra?.codigo}</strong>.
+              </p>
+              {qrMuestra && (
+                <a
+                  href={qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                    ? qrMuestra.qrCode
+                    : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-muted p-3 rounded-md border border-border text-xs font-mono text-primary hover:underline break-all flex items-center justify-center gap-2 w-full hover:bg-muted/80 transition-colors"
+                >
+                  <span>
+                    {qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                      ? qrMuestra.qrCode
+                      : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`}
+                  </span>
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
+                </a>
+              )}
+            </div>
             <div className="flex w-full gap-2">
               <Button className="w-full" variant="outline" onClick={downloadQR}>
                 <Download className="mr-2 h-4 w-4" />
@@ -235,9 +255,28 @@ export function SampleList({ muestras, proyectos, normas, onEdit, onDelete, onVi
               />
             )}
           </div>
-          <p className="text-sm text-center text-muted-foreground">
-            Escanea este código para acceder rápidamente a los detalles de la muestra <strong>{qrMuestra?.codigo}</strong>.
-          </p>
+          <div className="text-center space-y-3 w-full">
+            <p className="text-sm text-muted-foreground">
+              Escanea este código para acceder rápidamente a los detalles de la muestra <strong>{qrMuestra?.codigo}</strong>.
+            </p>
+            {qrMuestra && (
+              <a
+                href={qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                  ? qrMuestra.qrCode
+                  : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-muted p-3 rounded-md border border-border text-xs font-mono text-primary hover:underline break-all flex items-center justify-center gap-2 w-full hover:bg-muted/80 transition-colors"
+              >
+                <span>
+                  {qrMuestra.qrCode && qrMuestra.qrCode.startsWith('http')
+                    ? qrMuestra.qrCode
+                    : `https://controldecalidad.vercel.app/verify/muestra/${qrMuestra.id}`}
+                </span>
+                <ExternalLink className="h-3 w-3 flex-shrink-0" />
+              </a>
+            )}
+          </div>
           <div className="flex w-full gap-2">
             <Button className="w-full" variant="outline" onClick={downloadQR}>
               <Download className="mr-2 h-4 w-4" />

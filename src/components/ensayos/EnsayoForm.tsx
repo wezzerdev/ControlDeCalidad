@@ -3,9 +3,10 @@ import { Muestra, Norma, Proyecto } from '../../data/mockData';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
-import { ArrowLeft, Save, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle, XCircle, Camera } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useToast } from '../../context/ToastContext';
+import { Modal } from '../common/Modal';
 
 interface EnsayoFormProps {
   muestra: Muestra;
@@ -21,6 +22,7 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
   const [status, setStatus] = useState<'aprobado' | 'rechazado' | 'en_proceso'>('en_proceso');
   const [isMultiMode, setIsMultiMode] = useState(false);
   const [specimenRows, setSpecimenRows] = useState<Record<string, any>[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Initialize state from muestra.resultados
   useEffect(() => {
@@ -375,6 +377,30 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
             </CardContent>
           </Card>
 
+          {muestra.evidenciaFotografica && muestra.evidenciaFotografica.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Evidencia Fotográfica
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-2">
+                  {muestra.evidenciaFotografica.map((foto, index) => (
+                    <div 
+                      key={index} 
+                      className="aspect-square rounded-md overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setSelectedImage(foto)}
+                    >
+                      <img src={foto} alt={`Evidencia ${index + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Estado Calculado</CardTitle>
@@ -462,6 +488,19 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
           </Card>
         </div>
       </div>
+
+      <Modal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        title="Evidencia Fotográfica"
+        className="max-w-3xl"
+      >
+        {selectedImage && (
+          <div className="flex justify-center bg-black/5 rounded-lg overflow-hidden">
+            <img src={selectedImage} alt="Evidencia Ampliada" className="max-h-[80vh] w-auto object-contain" />
+          </div>
+        )}
+      </Modal>
     </form>
   );
 }

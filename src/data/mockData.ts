@@ -72,6 +72,7 @@ export interface User {
   createdAt: string;
   lastLogin: string;
   companyId?: string;
+  isOwner?: boolean; // Indicates if this is the main account owner
 }
 
 const defaultPermissions: UserPermissions = {
@@ -722,6 +723,7 @@ export interface Muestra {
   proveedor: string;
   qrCode: string;
   resultados?: Record<string, number | string | boolean>; // Keyed by field ID
+  evidenciaFotografica?: string[]; // URLs or base64 strings
   estado: 'pendiente' | 'en_proceso' | 'aprobado' | 'rechazado';
   tecnicoId: string;
   createdAt: string;

@@ -5,6 +5,7 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Modal } from '../components/common/Modal';
 import { ShieldCheck, CheckCircle, FileSearch, Plus, Search, Calendar, User } from 'lucide-react';
+import { MobileFloatingActions } from '../components/common/MobileFloatingActions';
 import { useData } from '../context/DataContext';
 import { mockUsers } from '../data/mockData';
 import { Audit } from '../data/mockData';
@@ -70,6 +71,19 @@ export default function Auditoria() {
     }
   };
 
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Tipo,Entidad,Fecha,Auditor,Estado\n"
+      + sortedAudits.map(a => `${a.type},${a.entity || ''},${a.scheduledDate},${a.auditor},${a.status}`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "auditorias.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -77,11 +91,21 @@ export default function Auditoria() {
           <h1 className="text-3xl font-bold text-foreground">Auditoría y Seguimiento</h1>
           <p className="text-muted-foreground mt-2">Registro de actividades y control de cumplimiento normativo.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Programar Auditoría
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} className="hidden md:flex">
+            Exportar CSV
+          </Button>
+          <Button onClick={() => setIsModalOpen(true)} className="hidden md:flex">
+            <Plus className="mr-2 h-4 w-4" />
+            Programar Auditoría
+          </Button>
+        </div>
       </div>
+
+      <MobileFloatingActions 
+        onAdd={() => setIsModalOpen(true)}
+        onExport={handleExport}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>

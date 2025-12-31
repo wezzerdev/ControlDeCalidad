@@ -5,6 +5,7 @@ import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Input } from '../components/common/Input';
 import { Plus, Package, Wrench, FlaskConical, Edit, Trash2, Search, Filter } from 'lucide-react';
+import { MobileFloatingActions } from '../components/common/MobileFloatingActions';
 import { useData } from '../context/DataContext';
 import { InventoryItem } from '../data/mockData';
 import { cn } from '../lib/utils';
@@ -95,6 +96,22 @@ export default function Inventarios() {
     return matchesSearch && matchesType;
   });
 
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Nombre,Tipo,Estado,Ubicacion,Cantidad,Unidad\n"
+      + filteredItems.map(i => {
+          const ubicacion = i.proyectoId ? getProjectName(i.proyectoId) : i.ubicacion;
+          return `${i.nombre},${i.tipo},${i.estado},${ubicacion},${i.cantidad},${i.unidad}`;
+      }).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "inventario.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -102,11 +119,21 @@ export default function Inventarios() {
           <h1 className="text-3xl font-bold text-foreground">Gestión de Inventarios</h1>
           <p className="text-muted-foreground mt-2">Control de equipos, materiales y reactivos.</p>
         </div>
-        <Button onClick={() => { setEditingItem(null); setFormData(initialFormState); setIsModalOpen(true); }} id="btn-new-item">
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Ítem
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} className="hidden md:flex">
+            Exportar CSV
+          </Button>
+          <Button onClick={() => { setEditingItem(null); setFormData(initialFormState); setIsModalOpen(true); }} id="btn-new-item" className="hidden md:flex">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Ítem
+          </Button>
+        </div>
       </div>
+
+      <MobileFloatingActions 
+        onAdd={() => { setEditingItem(null); setFormData(initialFormState); setIsModalOpen(true); }}
+        onExport={handleExport}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6" id="inventory-stats">
         <Card>

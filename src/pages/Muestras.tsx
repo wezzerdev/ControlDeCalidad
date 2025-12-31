@@ -9,6 +9,7 @@ import { Input } from '../components/common/Input';
 import { Pagination } from '../components/common/Pagination';
 import { usePagination } from '../hooks/usePagination';
 import { Plus, Search, Filter } from 'lucide-react';
+import { MobileFloatingActions } from '../components/common/MobileFloatingActions';
 
 export function Muestras() {
   const { 
@@ -136,6 +137,23 @@ export function Muestras() {
     setSelectedSample(null);
   };
 
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Codigo,Proyecto,Norma,Material,Fecha,Estado\n"
+      + filteredMuestras.map(m => {
+          const proyecto = proyectos.find(p => p.id === m.proyectoId)?.nombre || 'N/A';
+          const norma = normas.find(n => n.id === m.normaId)?.codigo || 'N/A';
+          return `${m.codigo},${proyecto},${norma},${m.tipoMaterial},${m.fechaRecepcion},${m.estado}`;
+      }).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "muestras.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (view === 'create' || view === 'edit') {
     return (
       <SampleForm
@@ -157,11 +175,21 @@ export function Muestras() {
             Registra y administra las muestras de materiales para ensayo.
           </p>
         </div>
-        <Button onClick={handleCreate} id="btn-new-sample">
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva Muestra
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} className="hidden md:flex">
+            Exportar CSV
+          </Button>
+          <Button onClick={handleCreate} id="btn-new-sample" className="hidden md:flex">
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva Muestra
+          </Button>
+        </div>
       </div>
+
+      <MobileFloatingActions 
+        onAdd={handleCreate}
+        onExport={handleExport}
+      />
 
       <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="samples-filters">
         <div className="flex-1">
