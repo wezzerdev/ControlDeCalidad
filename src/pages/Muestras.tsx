@@ -18,6 +18,7 @@ export function Muestras() {
     addMuestra, updateMuestra, deleteMuestra 
   } = useData();
   const { user } = useAuth();
+  const { addToast } = useToast();
 
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedSample, setSelectedSample] = useState<Muestra | null>(null);
