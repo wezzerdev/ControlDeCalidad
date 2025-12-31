@@ -721,6 +721,7 @@ export interface Muestra {
   fechaEnsayo?: string;
   ubicacion: string;
   proveedor: string;
+  equipoUtilizado?: string;
   qrCode: string;
   resultados?: Record<string, number | string | boolean>; // Keyed by field ID
   evidenciaFotografica?: string[]; // URLs or base64 strings

@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../common/Modal'; 
 import { compressImage } from '../../lib/utils';
+import { MobileFormActions } from '../common/MobileFormActions';
 
 interface SampleFormProps {
   initialData?: Muestra | null;
@@ -485,6 +486,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
       fechaTermino: formData.fechaTermino || undefined,
       ubicacion: finalLocation || '',
       proveedor: formData.proveedor || '',
+      equipoUtilizado: formData.equipoUtilizado || '',
       qrCode: formData.qrCode || '',
       estado: (formData.estado as 'pendiente' | 'en_proceso' | 'aprobado' | 'rechazado') || 'pendiente',
       tecnicoId: user?.id || '',
@@ -502,7 +504,7 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
         <h2 className="text-2xl font-bold text-foreground">
           {initialData ? 'Editar Muestra' : 'Nueva Muestra Estructurada'}
         </h2>
-        <div className="space-x-2">
+        <div className="space-x-2 hidden md:flex">
           <Button type="button" variant="outline" onClick={onCancel}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Cancelar
@@ -514,7 +516,9 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <MobileFormActions onSave={undefined} onCancel={onCancel} saveLabel="Guardar" />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -530,8 +534,10 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                  
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">1. Proyecto</label>
+                      <label htmlFor="proyectoId" className="text-sm font-medium">1. Proyecto</label>
                       <select
+                        id="proyectoId"
+                        data-testid="project-select"
                         name="proyectoId"
                         value={formData.proyectoId}
                         onChange={handleChange}
@@ -625,6 +631,8 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                         )}
                       </label>
                       <select
+                        id="normaId"
+                        data-testid="norm-select"
                         name="normaId"
                         value={formData.normaId}
                         onChange={handleChange}

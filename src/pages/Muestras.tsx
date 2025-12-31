@@ -3,6 +3,7 @@ import { SampleList } from '../components/muestras/SampleList';
 import { SampleForm } from '../components/muestras/SampleForm';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { Muestra } from '../data/mockData';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
@@ -137,6 +138,10 @@ export function Muestras() {
     setSelectedSample(null);
   };
 
+  const handleScanQr = () => {
+    addToast('Escáner de QR iniciado (Simulación)', 'info');
+  };
+
   const handleExport = () => {
     const csvContent = "data:text/csv;charset=utf-8," 
       + "Codigo,Proyecto,Norma,Material,Fecha,Estado\n"
@@ -189,6 +194,7 @@ export function Muestras() {
       <MobileFloatingActions 
         onAdd={handleCreate}
         onExport={handleExport}
+        onScanQr={handleScanQr}
       />
 
       <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="samples-filters">

@@ -6,6 +6,7 @@ import { Plus, X, Save, ArrowLeft } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { useToast } from '../../context/ToastContext';
+import { MobileFormActions } from '../common/MobileFormActions';
 
 interface NormaEditorProps {
   initialData?: Norma | null;
@@ -83,7 +84,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
         <h2 className="text-2xl font-bold text-foreground">
           {initialData ? 'Editar Norma' : 'Nueva Norma'}
         </h2>
-        <div className="space-x-2">
+        <div className="space-x-2 hidden md:flex">
           <Button type="button" variant="outline" onClick={onCancel}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Cancelar
@@ -95,7 +96,9 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <MobileFormActions onCancel={onCancel} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>

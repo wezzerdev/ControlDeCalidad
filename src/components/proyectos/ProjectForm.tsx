@@ -7,6 +7,7 @@ import { Save, ArrowLeft, Check, Search } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
 import { cn } from '../../lib/utils';
+import { MobileFormActions } from '../common/MobileFormActions';
 import { useToast } from '../../context/ToastContext';
 
 interface ProjectFormProps {
@@ -135,7 +136,10 @@ export function ProjectForm({ initialData, normas, onSave, onCancel }: ProjectFo
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Mobile Floating Action Bar */}
+      <MobileFormActions onCancel={onCancel} />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>

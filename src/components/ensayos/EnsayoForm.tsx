@@ -7,6 +7,7 @@ import { ArrowLeft, Save, CheckCircle, XCircle, Camera } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../common/Modal';
+import { MobileFormActions } from '../common/MobileFormActions';
 
 interface EnsayoFormProps {
   muestra: Muestra;
@@ -335,7 +336,7 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Registro de Resultados</h2>
-        <div className="space-x-2">
+        <div className="space-x-2 hidden md:flex">
           <Button type="button" variant="outline" onClick={onCancel}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
@@ -347,7 +348,13 @@ export function EnsayoForm({ muestra, norma, proyecto, onSave, onCancel }: Ensay
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <MobileFormActions 
+        onCancel={onCancel} 
+        cancelLabel="Volver"
+        saveLabel="Guardar"
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>

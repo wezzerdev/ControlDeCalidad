@@ -6,7 +6,8 @@ import { useData } from '../../context/DataContext';
 import { useCompany } from '../../context/CompanyContext';
 import { CertificateTemplate } from '../../data/mockData';
 import { Plus, Edit, Trash2, CheckCircle, Layout, Eye, QrCode, Droplet, Square } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
+import { MobileFormActions } from '../common/MobileFormActions';
 
 // --- PREVIEW COMPONENTS ---
 
