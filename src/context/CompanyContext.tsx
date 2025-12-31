@@ -41,11 +41,17 @@ const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 export function CompanyProvider({ children }: { children: React.ReactNode }) {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(defaultCompanyInfo);
   const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth(); // Re-fetch if user logs in
 
   useEffect(() => {
-    fetchCompanySettings();
-    fetchUsers();
+    const init = async () => {
+      setIsLoading(true);
+      await fetchCompanySettings();
+      await fetchUsers();
+      setIsLoading(false);
+    };
+    init();
   }, [user]);
 
   const fetchCompanySettings = async () => {

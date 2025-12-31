@@ -8,6 +8,7 @@ export interface FabAction {
   icon: React.ReactNode;
   onClick: () => void;
   variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost';
+  disabled?: boolean;
 }
 
 interface FloatingActionButtonProps {
