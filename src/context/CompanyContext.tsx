@@ -17,10 +17,9 @@ export interface CompanyInfo {
 interface CompanyContextType {
   companyInfo: CompanyInfo;
   users: User[];
+  isLoading: boolean;
   updateCompanyInfo: (info: CompanyInfo) => Promise<void>;
   updatePlan: (planId: string) => Promise<void>;
-  // User management is now handled via Supabase Auth / Profiles
-  // but we keep these for compatibility with existing UI
   addUser: (user: User) => Promise<void>;
   updateUser: (user: User) => Promise<void>;
   removeUser: (userId: string) => Promise<void>;
@@ -315,7 +314,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     <CompanyContext.Provider value={{ 
       companyInfo, 
       users, 
-      isLoading,
+      loading,
       updateCompanyInfo, 
       updatePlan,
       addUser,

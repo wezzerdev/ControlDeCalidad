@@ -26,7 +26,7 @@ export function Dashboard() {
   const { normas, proyectos, muestras } = useData();
   const { primaryColor } = useTheme();
   const { user } = useAuth();
-  const { companyInfo, retryCompanySetup, isLoading: isCompanyLoading } = useCompany();
+  const { companyInfo, retryCompanySetup, loading: isCompanyLoading } = useCompany();
   const [isRetrying, setIsRetrying] = React.useState(false);
 
   const handleRetry = async () => {
