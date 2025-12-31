@@ -23,21 +23,73 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
     descripcion: '',
     activa: true,
     campos: [],
-    tiposMuestraCompatibles: []
+    tiposMuestraCompatibles: [],
+    detalles_adicionales: {
+      objetivo: '',
+      muestra: '',
+      equipo_principal: [],
+      procedimiento_resumido: [],
+      datos_reportados: [],
+      normas_relacionadas: [],
+      usa_resultados_de: [],
+      edades: [],
+      tolerancias: '',
+      limites: '',
+      requisitos: '',
+      especimenes: ''
+    }
   });
 
   const [campos, setCampos] = useState<NormaField[]>([]);
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        detalles_adicionales: {
+          objetivo: initialData.detalles_adicionales?.objetivo || '',
+          muestra: initialData.detalles_adicionales?.muestra || '',
+          equipo_principal: initialData.detalles_adicionales?.equipo_principal || [],
+          procedimiento_resumido: initialData.detalles_adicionales?.procedimiento_resumido || [],
+          datos_reportados: initialData.detalles_adicionales?.datos_reportados || [],
+          normas_relacionadas: initialData.detalles_adicionales?.normas_relacionadas || [],
+          usa_resultados_de: initialData.detalles_adicionales?.usa_resultados_de || [],
+          edades: initialData.detalles_adicionales?.edades || [],
+          tolerancias: initialData.detalles_adicionales?.tolerancias || '',
+          limites: initialData.detalles_adicionales?.limites || '',
+          requisitos: initialData.detalles_adicionales?.requisitos || '',
+          especimenes: initialData.detalles_adicionales?.especimenes || ''
+        }
+      });
       setCampos(initialData.campos || []);
     }
   }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name.startsWith('detalles.')) {
+      const detailField = name.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        detalles_adicionales: {
+          ...prev.detalles_adicionales,
+          [detailField]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleArrayChange = (field: 'equipo_principal' | 'procedimiento_resumido' | 'datos_reportados' | 'normas_relacionadas' | 'usa_resultados_de' | 'edades', value: string) => {
+    const arrayValue = value.split('\n').filter(line => line.trim() !== '');
+    setFormData(prev => ({
+      ...prev,
+      detalles_adicionales: {
+        ...prev.detalles_adicionales,
+        [field]: arrayValue
+      }
+    }));
   };
 
   const addField = () => {
@@ -169,6 +221,134 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalles Técnicos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Objetivo</label>
+                <textarea
+                  name="detalles.objetivo"
+                  value={formData.detalles_adicionales?.objetivo || ''}
+                  onChange={handleChange}
+                  rows={3}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="Objetivo principal de la norma"
+                />
+              </div>
+              
+              <Input
+                label="Muestra Requerida"
+                name="detalles.muestra"
+                value={formData.detalles_adicionales?.muestra || ''}
+                onChange={handleChange}
+                placeholder="ej. 500g mínimo"
+              />
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Equipo Principal (uno por línea)</label>
+                <textarea
+                  value={Array.isArray(formData.detalles_adicionales?.equipo_principal) 
+                    ? formData.detalles_adicionales?.equipo_principal.join('\n') 
+                    : formData.detalles_adicionales?.equipo_principal || ''}
+                  onChange={(e) => handleArrayChange('equipo_principal', e.target.value)}
+                  rows={4}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Datos Reportados (uno por línea)</label>
+                <textarea
+                  value={Array.isArray(formData.detalles_adicionales?.datos_reportados) 
+                    ? formData.detalles_adicionales?.datos_reportados.join('\n') 
+                    : formData.detalles_adicionales?.datos_reportados || ''}
+                  onChange={(e) => handleArrayChange('datos_reportados' as any, e.target.value)}
+                  rows={3}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  placeholder="ej. Densidad, Absorción"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Procedimiento (uno por línea)</label>
+                <textarea
+                  value={formData.detalles_adicionales?.procedimiento_resumido?.join('\n') || ''}
+                  onChange={(e) => handleArrayChange('procedimiento_resumido', e.target.value)}
+                  rows={6}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <Input
+                    label="Especímenes"
+                    name="detalles.especimenes"
+                    value={formData.detalles_adicionales?.especimenes || ''}
+                    onChange={handleChange}
+                    placeholder="ej. Ø15×30cm"
+                 />
+                 <Input
+                    label="Requisitos"
+                    name="detalles.requisitos"
+                    value={formData.detalles_adicionales?.requisitos || ''}
+                    onChange={handleChange}
+                    placeholder="ej. 23±2°C"
+                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                 <div className="space-y-1">
+                    <label className="text-sm font-medium text-foreground">Edades (una por línea)</label>
+                    <textarea
+                      value={formData.detalles_adicionales?.edades?.join('\n') || ''}
+                      onChange={(e) => handleArrayChange('edades', e.target.value)}
+                      rows={3}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      placeholder="3, 7, 28 días"
+                    />
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-sm font-medium text-foreground">Normas Rel. (una por línea)</label>
+                    <textarea
+                      value={formData.detalles_adicionales?.normas_relacionadas?.join('\n') || ''}
+                      onChange={(e) => handleArrayChange('normas_relacionadas', e.target.value)}
+                      rows={3}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      placeholder="C-077, C-164"
+                    />
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-sm font-medium text-foreground">Usa Res. De (una por línea)</label>
+                    <textarea
+                      value={formData.detalles_adicionales?.usa_resultados_de?.join('\n') || ''}
+                      onChange={(e) => handleArrayChange('usa_resultados_de', e.target.value)}
+                      rows={3}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      placeholder="Granulometría"
+                    />
+                 </div>
+              </div>
+
+              <Input
+                label="Tolerancias"
+                name="detalles.tolerancias"
+                value={formData.detalles_adicionales?.tolerancias || ''}
+                onChange={handleChange}
+                placeholder="ej. ±0.1g"
+              />
+
+              <Input
+                label="Límites / Criterios"
+                name="detalles.limites"
+                value={formData.detalles_adicionales?.limites || ''}
+                onChange={handleChange}
+                placeholder="ej. ≥ 200 kg/cm²"
+              />
             </CardContent>
           </Card>
         </div>

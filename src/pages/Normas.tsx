@@ -7,7 +7,7 @@ import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Pagination } from '../components/common/Pagination';
 import { usePagination } from '../hooks/usePagination';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, Download } from 'lucide-react';
 
 export function Normas() {
   const { normas, addNorma, updateNorma, deleteNorma } = useData();
@@ -93,7 +93,52 @@ export function Normas() {
     setSelectedNorma(null);
   };
 
-  // Filter logic removed from here as it's now above the hook
+  const handleExport = () => {
+    // Generate CSV content
+    const headers = [
+      'Código',
+      'Nombre',
+      'Tipo',
+      'Descripción',
+      'Estado',
+      'Creada Por',
+      'Fecha Creación',
+      'Tipos Compatibles',
+      'Campos Definidos'
+    ];
+
+    const rows = filteredNormas.map(n => {
+      const tiposCompatibles = n.tiposMuestraCompatibles ? n.tiposMuestraCompatibles.join('; ') : '';
+      const camposDefinidos = n.campos ? n.campos.map(c => c.nombre).join('; ') : '';
+      
+      // Escape quotes and handle commas in content
+      const clean = (text: string) => `"${(text || '').replace(/"/g, '""')}"`;
+
+      return [
+        clean(n.codigo),
+        clean(n.nombre),
+        clean(n.tipo),
+        clean(n.descripcion),
+        n.activa ? 'Activa' : 'Inactiva',
+        clean(n.creadaPor),
+        clean(n.createdAt),
+        clean(tiposCompatibles),
+        clean(camposDefinidos)
+      ].join(',');
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(',') + "\n"
+      + rows.join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `normas_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (view === 'create' || view === 'edit') {
     return (
@@ -114,11 +159,17 @@ export function Normas() {
             Administra las normas técnicas, plantillas y configuraciones de ensayo.
           </p>
         </div>
-        <Button onClick={handleCreate} id="btn-new-norma">
-          <Plus className="mr-2 h-4 w-4" />
-          <span className="hidden md:inline">Nueva Norma</span>
-          <span className="md:hidden">Nueva</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport} title="Exportar Normas">
+            <Download className="mr-2 h-4 w-4" />
+            <span className="hidden md:inline">Exportar</span>
+          </Button>
+          <Button onClick={handleCreate} id="btn-new-norma">
+            <Plus className="mr-2 h-4 w-4" />
+            <span className="hidden md:inline">Nueva Norma</span>
+            <span className="md:hidden">Nueva</span>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 bg-card p-4 rounded-lg border border-border shadow-sm" id="normas-filters">

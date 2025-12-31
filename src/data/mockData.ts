@@ -170,6 +170,20 @@ export interface Norma {
   createdAt: string;
   // New field for relationship
   tiposMuestraCompatibles: SampleTypeCategory[];
+  detalles_adicionales?: {
+    objetivo?: string;
+    muestra?: string;
+    equipo_principal?: string | string[];
+    datos_reportados?: string[];
+    tolerancias?: string;
+    limites?: string;
+    procedimiento_resumido?: string[];
+    normas_relacionadas?: string[];
+    usa_resultados_de?: string[];
+    requisitos?: string;
+    especimenes?: string;
+    edades?: string[];
+  };
   tutorial?: {
       pasos: string[];
       videoUrl?: string; // Optional link to a video

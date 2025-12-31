@@ -8,10 +8,11 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
   className?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, className }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,19 +38,24 @@ export function Modal({ isOpen, onClose, title, children, className }: ModalProp
       <div 
         ref={modalRef}
         className={cn(
-          "bg-card text-card-foreground border border-border shadow-lg rounded-lg w-full max-w-lg relative animate-in zoom-in-95 duration-200",
+          "bg-card text-card-foreground border border-border shadow-lg rounded-lg w-full max-w-lg relative animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]",
           className
         )}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h3 className="text-lg font-semibold">{title}</h3>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="p-4">
+        <div className="p-4 overflow-y-auto flex-1">
           {children}
         </div>
+        {footer && (
+           <div className="p-4 border-t border-border flex-shrink-0 bg-muted/10">
+             {footer}
+           </div>
+        )}
       </div>
     </div>
   );

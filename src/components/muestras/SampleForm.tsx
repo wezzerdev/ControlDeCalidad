@@ -3,7 +3,7 @@ import { Muestra, Proyecto, Norma, SampleTypeCategory } from '../../data/mockDat
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
-import { Save, ArrowLeft, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X, PlusCircle, Trash2, Camera, Image as ImageIcon } from 'lucide-react';
+import { Save, ArrowLeft, ArrowRight, QrCode as QrIcon, MapPin, Navigation, Info, FileText, Search, BookOpen, CheckCircle, Lightbulb, ChevronDown, X, PlusCircle, Trash2, Camera, Image as ImageIcon, Beaker } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '../common/Card';
@@ -966,17 +966,96 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
               <div className="w-full text-sm space-y-2">
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">Categoría:</span>
-                  <span className="font-medium">{selectedCategory || '-'}</span>
+                  <span className="font-semibold">{selectedCategory || '-'}</span>
                 </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="text-muted-foreground">Norma:</span>
-                  <span className="font-medium text-right max-w-[150px] truncate">
+                  <span className="font-semibold text-right max-w-[150px] truncate">
                     {availableNormas.find(n => n.id === formData.normaId)?.codigo || '-'}
                   </span>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Dynamic Reference Card */}
+          {selectedNormaDetails && selectedNormaDetails.detalles_adicionales && (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base flex items-center">
+                        <BookOpen className="w-4 h-4 mr-2 text-primary" />
+                        Referencia Técnica
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                    {/* Equipo Principal */}
+                    {selectedNormaDetails.detalles_adicionales.equipo_principal && (
+                        <div className="space-y-2">
+                            <h4 className="font-semibold text-xs uppercase text-muted-foreground flex items-center">
+                                <Beaker className="w-3 h-3 mr-1" /> Equipo Necesario
+                            </h4>
+                            <div className="bg-muted/30 rounded-md p-2 border border-border">
+                                <ul className="list-disc list-inside text-xs space-y-1">
+                                    {Array.isArray(selectedNormaDetails.detalles_adicionales.equipo_principal)
+                                        ? selectedNormaDetails.detalles_adicionales.equipo_principal.map((item, idx) => (
+                                            <li key={idx}>{item}</li>
+                                        ))
+                                        : <li>{selectedNormaDetails.detalles_adicionales.equipo_principal}</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Muestra Requerida */}
+                    {selectedNormaDetails.detalles_adicionales.muestra && (
+                        <div className="space-y-1">
+                            <h4 className="font-semibold text-xs uppercase text-muted-foreground">Muestra Requerida</h4>
+                            <p className="text-xs bg-blue-50 dark:bg-blue-900/10 p-2 rounded text-foreground/90">
+                                {selectedNormaDetails.detalles_adicionales.muestra}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Criterios (Tolerancias / Límites) */}
+                    {(selectedNormaDetails.detalles_adicionales.tolerancias || selectedNormaDetails.detalles_adicionales.limites) && (
+                        <div className="space-y-2">
+                            <h4 className="font-semibold text-xs uppercase text-muted-foreground">Criterios de Aceptación</h4>
+                            <div className="space-y-2">
+                                {selectedNormaDetails.detalles_adicionales.tolerancias && (
+                                    <div className="text-xs bg-yellow-50 dark:bg-yellow-900/10 p-2 rounded border-l-2 border-yellow-400">
+                                        <span className="font-semibold block text-yellow-800 dark:text-yellow-200">Tolerancias:</span>
+                                        {selectedNormaDetails.detalles_adicionales.tolerancias}
+                                    </div>
+                                )}
+                                {selectedNormaDetails.detalles_adicionales.limites && (
+                                    <div className="text-xs bg-red-50 dark:bg-red-900/10 p-2 rounded border-l-2 border-red-400">
+                                        <span className="font-semibold block text-red-800 dark:text-red-200">Límites:</span>
+                                        {selectedNormaDetails.detalles_adicionales.limites}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Procedimiento Resumido (Collapsible or Short) */}
+                    {selectedNormaDetails.detalles_adicionales.procedimiento_resumido && (
+                         <div className="pt-2 border-t border-border">
+                            <Button 
+                                type="button" 
+                                variant="ghost" 
+                                size="sm" 
+                                className="w-full justify-between text-xs h-8"
+                                onClick={() => setShowNormaReview(true)}
+                            >
+                                Ver Procedimiento Completo
+                                <ArrowRight className="w-3 h-3 ml-1" />
+                            </Button>
+                         </div>
+                    )}
+                </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -986,6 +1065,11 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
           isOpen={showNormaReview} 
           onClose={() => setShowNormaReview(false)}
           title={`Reseña: ${selectedNormaDetails.codigo}`}
+          footer={
+            <div className="flex w-full sm:justify-end">
+                <Button className="w-full sm:w-auto" onClick={() => setShowNormaReview(false)}>Entendido, iniciar muestreo</Button>
+            </div>
+          }
         >
           <div className="space-y-6">
              <div>
@@ -998,7 +1082,126 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                </p>
              </div>
 
-             {selectedNormaDetails.tutorial && (
+             {selectedNormaDetails.detalles_adicionales ? (
+               <div className="space-y-4">
+                 {selectedNormaDetails.detalles_adicionales.objetivo && (
+                   <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-md border border-blue-100 dark:border-blue-800">
+                     <h4 className="font-semibold text-blue-800 dark:text-blue-300 text-sm mb-1">Objetivo</h4>
+                     <p className="text-sm text-foreground/90">{selectedNormaDetails.detalles_adicionales.objetivo}</p>
+                   </div>
+                 )}
+                 
+                 {selectedNormaDetails.detalles_adicionales.muestra && (
+                    <div className="flex items-start gap-2 bg-muted/20 p-2 rounded border border-border">
+                        <span className="font-semibold text-sm text-primary whitespace-nowrap">Muestra Requerida:</span>
+                        <span className="text-sm text-foreground/90">{selectedNormaDetails.detalles_adicionales.muestra}</span>
+                    </div>
+                 )}
+
+                 {selectedNormaDetails.detalles_adicionales.procedimiento_resumido && selectedNormaDetails.detalles_adicionales.procedimiento_resumido.length > 0 && (
+                   <div>
+                      <h4 className="font-semibold text-primary mb-2 flex items-center text-sm">
+                          <BookOpen className="w-4 h-4 mr-2" />
+                          Procedimiento Resumido
+                      </h4>
+                      <div className="bg-muted/30 p-4 rounded-md border border-border">
+                          <ul className="space-y-2">
+                              {selectedNormaDetails.detalles_adicionales.procedimiento_resumido.map((paso, index) => (
+                                  <li key={index} className="flex items-start text-sm">
+                                      <span className="flex-shrink-0 w-5 h-5 bg-primary/10 text-primary rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">
+                                          {index + 1}
+                                      </span>
+                                      <span className="text-foreground/90">{paso}</span>
+                                  </li>
+                              ))}
+                          </ul>
+                      </div>
+                   </div>
+                 )}
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedNormaDetails.detalles_adicionales.equipo_principal && (
+                      <div>
+                        <h4 className="font-semibold text-primary mb-2 text-sm">Equipo Principal</h4>
+                        <ul className="text-xs list-disc list-inside text-muted-foreground bg-muted/20 p-3 rounded border border-border">
+                          {Array.isArray(selectedNormaDetails.detalles_adicionales.equipo_principal) 
+                            ? selectedNormaDetails.detalles_adicionales.equipo_principal.map((eq, i) => <li key={i}>{eq}</li>)
+                            : <li>{selectedNormaDetails.detalles_adicionales.equipo_principal}</li>
+                          }
+                        </ul>
+                      </div>
+                    )}
+
+                    {selectedNormaDetails.detalles_adicionales.datos_reportados && (
+                      <div>
+                        <h4 className="font-semibold text-primary mb-2 text-sm">Datos Reportados</h4>
+                        <ul className="text-xs list-disc list-inside text-muted-foreground bg-muted/20 p-3 rounded border border-border">
+                          {Array.isArray(selectedNormaDetails.detalles_adicionales.datos_reportados) 
+                            ? selectedNormaDetails.detalles_adicionales.datos_reportados.map((dr, i) => <li key={i}>{dr}</li>)
+                            : <li>{selectedNormaDetails.detalles_adicionales.datos_reportados}</li>
+                          }
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {(selectedNormaDetails.detalles_adicionales.tolerancias || selectedNormaDetails.detalles_adicionales.limites || selectedNormaDetails.detalles_adicionales.requisitos) && (
+                      <div>
+                        <h4 className="font-semibold text-primary mb-2 text-sm">Criterios Técnicos</h4>
+                        <div className="text-xs space-y-2 bg-yellow-50 dark:bg-yellow-900/10 p-3 rounded border border-yellow-100 dark:border-yellow-800">
+                           {selectedNormaDetails.detalles_adicionales.requisitos && (
+                             <div>
+                               <span className="font-semibold block text-yellow-700 dark:text-yellow-400">Requisitos:</span>
+                               <span className="text-muted-foreground">{selectedNormaDetails.detalles_adicionales.requisitos}</span>
+                             </div>
+                           )}
+                           {selectedNormaDetails.detalles_adicionales.tolerancias && (
+                             <div>
+                               <span className="font-semibold block text-yellow-700 dark:text-yellow-400 mt-1">Tolerancias:</span>
+                               <span className="text-muted-foreground">{selectedNormaDetails.detalles_adicionales.tolerancias}</span>
+                             </div>
+                           )}
+                           {selectedNormaDetails.detalles_adicionales.limites && (
+                             <div>
+                               <span className="font-semibold block text-yellow-700 dark:text-yellow-400 mt-1">Límites:</span>
+                               <span className="text-muted-foreground">{selectedNormaDetails.detalles_adicionales.limites}</span>
+                             </div>
+                           )}
+                        </div>
+                      </div>
+                    )}
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedNormaDetails.detalles_adicionales.especimenes && (
+                       <div className="text-xs text-muted-foreground">
+                          <span className="font-semibold text-primary">Especímenes: </span>
+                          {selectedNormaDetails.detalles_adicionales.especimenes}
+                       </div>
+                    )}
+                    {selectedNormaDetails.detalles_adicionales.edades && selectedNormaDetails.detalles_adicionales.edades.length > 0 && (
+                       <div className="text-xs text-muted-foreground">
+                          <span className="font-semibold text-primary">Edades: </span>
+                          {selectedNormaDetails.detalles_adicionales.edades.join(', ')}
+                       </div>
+                    )}
+                 </div>
+                 
+                 {(selectedNormaDetails.detalles_adicionales.normas_relacionadas || selectedNormaDetails.detalles_adicionales.usa_resultados_de) && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-border/50">
+                        {selectedNormaDetails.detalles_adicionales.normas_relacionadas?.map(n => (
+                            <span key={n} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                Rel: {n}
+                            </span>
+                        ))}
+                        {selectedNormaDetails.detalles_adicionales.usa_resultados_de?.map(r => (
+                            <span key={r} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                Usa: {r}
+                            </span>
+                        ))}
+                    </div>
+                 )}
+               </div>
+             ) : selectedNormaDetails.tutorial && (
                  <div className="space-y-4">
                      <div>
                         <h4 className="font-semibold text-primary mb-2 flex items-center">
@@ -1052,10 +1255,6 @@ export function SampleForm({ initialData, proyectos, normas, onSave, onCancel }:
                  <FileText className="w-4 h-4 mr-2 mt-0.5" />
                  Asegúrese de contar con todo el equipo necesario antes de iniciar el muestreo conforme a esta norma.
                </p>
-             </div>
-             
-             <div className="flex justify-end pt-2">
-               <Button onClick={() => setShowNormaReview(false)}>Entendido, iniciar muestreo</Button>
              </div>
           </div>
         </Modal>
