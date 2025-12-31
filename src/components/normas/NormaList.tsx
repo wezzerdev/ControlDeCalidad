@@ -126,12 +126,6 @@ export function NormaList({ normas, onEdit, onDelete, onView, viewMode = 'list' 
                   <Button variant="ghost" size="icon" onClick={() => onView(norma)} title="Ver detalles">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onEdit(norma)} title="Editar">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => onDelete(norma.id)} className="text-destructive hover:text-destructive" title="Eliminar">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </TableCell>
             </TableRow>

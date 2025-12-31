@@ -2,11 +2,40 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { driver, DriveStep } from 'driver.js';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export function useTutorial() {
   const location = useLocation();
   const { user, loading } = useAuth();
   const [hasStartedAuto, setHasStartedAuto] = useState(false);
+
+  const markAsSeen = useCallback(async (key: string) => {
+    // 1. LocalStorage (Immediate check for current session/browser)
+    localStorage.setItem(`tutorial_seen_${key}`, 'true');
+
+    // 2. Database (Persistence across logins/devices)
+    if (user?.id) {
+        try {
+            const currentPrefs = user.preferences || {};
+            const tutorialsSeen = currentPrefs.tutorials_seen || {};
+            
+            // Don't update if already true in DB to save bandwidth
+            if (tutorialsSeen[key]) return;
+
+            await supabase.from('profiles').update({
+                preferences: {
+                    ...currentPrefs,
+                    tutorials_seen: {
+                        ...tutorialsSeen,
+                        [key]: true
+                    }
+                }
+            }).eq('id', user.id);
+        } catch (e) {
+            console.error('Failed to save tutorial preference', e);
+        }
+    }
+  }, [user]);
 
   // Helper to determine tutorial config based on route
   const getTutorialConfig = useCallback((pathname: string): { key: string; steps: DriveStep[] } => {
@@ -409,13 +438,13 @@ export function useTutorial() {
       onDestroyed: () => {
         // Mark as seen when closed or finished
         if (key) {
-          localStorage.setItem(`tutorial_seen_${key}`, 'true');
+          markAsSeen(key);
         }
       }
     });
 
     driverObj.drive();
-  }, [location, getTutorialConfig]);
+  }, [location, getTutorialConfig, markAsSeen]);
 
   // Auto-start tutorial logic
   useEffect(() => {
@@ -427,9 +456,10 @@ export function useTutorial() {
     // We rely on localStorage check.
 
     const { key } = getTutorialConfig(location.pathname);
-    const hasSeen = localStorage.getItem(`tutorial_seen_${key}`);
+    const hasSeenStorage = localStorage.getItem(`tutorial_seen_${key}`);
+    const hasSeenProfile = user.preferences?.tutorials_seen?.[key];
 
-    if (!hasSeen) {
+    if (!hasSeenStorage && !hasSeenProfile) {
       // Small delay to ensure DOM elements are rendered (e.g. data tables)
       const timer = setTimeout(() => {
         // Check again inside timeout just in case

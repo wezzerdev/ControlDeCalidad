@@ -68,6 +68,7 @@ export interface User {
     primaryColor?: string;
     language: string;
     notifications: boolean;
+    tutorials_seen?: Record<string, boolean>;
   };
   createdAt: string;
   lastLogin: string;

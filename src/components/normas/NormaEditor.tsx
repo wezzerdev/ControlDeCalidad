@@ -12,9 +12,10 @@ interface NormaEditorProps {
   initialData?: Norma | null;
   onSave: (norma: Norma) => void;
   onCancel: () => void;
+  readOnly?: boolean;
 }
 
-export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps) {
+export function NormaEditor({ initialData, onSave, onCancel, readOnly = false }: NormaEditorProps) {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<Partial<Norma>>({
     codigo: '',
@@ -134,21 +135,23 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">
-          {initialData ? 'Editar Norma' : 'Nueva Norma'}
+          {readOnly ? 'Ver Norma' : (initialData ? 'Editar Norma' : 'Nueva Norma')}
         </h2>
         <div className="space-x-2 hidden md:flex">
           <Button type="button" variant="outline" onClick={onCancel}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Cancelar
+            Volver
           </Button>
-          <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
-            Guardar
-          </Button>
+          {!readOnly && (
+            <Button type="submit">
+              <Save className="mr-2 h-4 w-4" />
+              Guardar
+            </Button>
+          )}
         </div>
       </div>
 
-      <MobileFormActions onCancel={onCancel} />
+      <MobileFormActions onCancel={onCancel} showSave={!readOnly} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-24 md:pb-0">
         <div className="lg:col-span-1 space-y-6">
@@ -164,6 +167,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                 onChange={handleChange}
                 placeholder="ej. NMX-C-414"
                 required
+                disabled={readOnly}
               />
               <Input
                 label="Nombre"
@@ -172,6 +176,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                 onChange={handleChange}
                 placeholder="Nombre descriptivo de la norma"
                 required
+                disabled={readOnly}
               />
               <div className="space-y-1">
                 <label className="text-sm font-medium text-foreground">Tipo</label>
@@ -179,7 +184,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   name="tipo"
                   value={formData.tipo}
                   onChange={handleChange}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  disabled={readOnly}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="NMX">NMX (Mexicana)</option>
                   <option value="ACI">ACI (Americana)</option>
@@ -195,6 +201,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   value={formData.descripcion}
                   onChange={handleChange}
                   rows={4}
+                  disabled={readOnly}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
@@ -208,13 +215,15 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                         type="checkbox"
                         checked={formData.tiposMuestraCompatibles?.includes(type as SampleTypeCategory)}
                         onChange={(e) => {
+                          if (readOnly) return;
                           const current = formData.tiposMuestraCompatibles || [];
                           const updated = e.target.checked
                             ? [...current, type as SampleTypeCategory]
                             : current.filter(t => t !== type);
                           setFormData(prev => ({ ...prev, tiposMuestraCompatibles: updated }));
                         }}
-                        className="rounded border-input text-primary focus:ring-primary"
+                        disabled={readOnly}
+                        className="rounded border-input text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                       />
                       <span>{type}</span>
                     </label>
@@ -236,7 +245,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   value={formData.detalles_adicionales?.objetivo || ''}
                   onChange={handleChange}
                   rows={3}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  disabled={readOnly}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Objetivo principal de la norma"
                 />
               </div>
@@ -247,6 +257,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                 value={formData.detalles_adicionales?.muestra || ''}
                 onChange={handleChange}
                 placeholder="ej. 500g mínimo"
+                disabled={readOnly}
               />
 
               <div className="space-y-1">
@@ -257,7 +268,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                     : formData.detalles_adicionales?.equipo_principal || ''}
                   onChange={(e) => handleArrayChange('equipo_principal', e.target.value)}
                   rows={4}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  disabled={readOnly}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -269,7 +281,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                     : formData.detalles_adicionales?.datos_reportados || ''}
                   onChange={(e) => handleArrayChange('datos_reportados' as any, e.target.value)}
                   rows={3}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  disabled={readOnly}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="ej. Densidad, Absorción"
                 />
               </div>
@@ -280,7 +293,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                   value={formData.detalles_adicionales?.procedimiento_resumido?.join('\n') || ''}
                   onChange={(e) => handleArrayChange('procedimiento_resumido', e.target.value)}
                   rows={6}
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  disabled={readOnly}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
 
@@ -291,6 +305,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                     value={formData.detalles_adicionales?.especimenes || ''}
                     onChange={handleChange}
                     placeholder="ej. Ø15×30cm"
+                    disabled={readOnly}
                  />
                  <Input
                     label="Requisitos"
@@ -298,6 +313,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                     value={formData.detalles_adicionales?.requisitos || ''}
                     onChange={handleChange}
                     placeholder="ej. 23±2°C"
+                    disabled={readOnly}
                  />
               </div>
 
@@ -308,7 +324,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                       value={formData.detalles_adicionales?.edades?.join('\n') || ''}
                       onChange={(e) => handleArrayChange('edades', e.target.value)}
                       rows={3}
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      disabled={readOnly}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="3, 7, 28 días"
                     />
                  </div>
@@ -318,7 +335,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                       value={formData.detalles_adicionales?.normas_relacionadas?.join('\n') || ''}
                       onChange={(e) => handleArrayChange('normas_relacionadas', e.target.value)}
                       rows={3}
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      disabled={readOnly}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="C-077, C-164"
                     />
                  </div>
@@ -328,7 +346,8 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                       value={formData.detalles_adicionales?.usa_resultados_de?.join('\n') || ''}
                       onChange={(e) => handleArrayChange('usa_resultados_de', e.target.value)}
                       rows={3}
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      disabled={readOnly}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Granulometría"
                     />
                  </div>
@@ -340,6 +359,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                 value={formData.detalles_adicionales?.tolerancias || ''}
                 onChange={handleChange}
                 placeholder="ej. ±0.1g"
+                disabled={readOnly}
               />
 
               <Input
@@ -348,6 +368,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                 value={formData.detalles_adicionales?.limites || ''}
                 onChange={handleChange}
                 placeholder="ej. ≥ 200 kg/cm²"
+                disabled={readOnly}
               />
             </CardContent>
           </Card>
@@ -357,10 +378,12 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Campos Dinámicos</CardTitle>
-              <Button type="button" onClick={addField} size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Campo
-              </Button>
+              {!readOnly && (
+                <Button type="button" onClick={addField} size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Agregar Campo
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               {campos.length === 0 ? (
@@ -370,15 +393,17 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
               ) : (
                 campos.map((campo) => (
                   <div key={campo.id} className="p-4 border border-border rounded-lg bg-card/50 space-y-4 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeField(campo.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeField(campo.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pr-8">
                       <Input
@@ -387,13 +412,15 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                         onChange={(e) => updateField(campo.id, { nombre: e.target.value })}
                         placeholder="ej. Resistencia Compresión"
                         required
+                        disabled={readOnly}
                       />
                       <div className="space-y-1">
                         <label className="text-sm font-medium text-foreground">Tipo de Dato</label>
                         <select
                           value={campo.tipo}
                           onChange={(e) => updateField(campo.id, { tipo: e.target.value as 'number' | 'text' | 'boolean' | 'select' })}
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          disabled={readOnly}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <option value="number">Numérico</option>
                           <option value="text">Texto</option>
@@ -410,6 +437,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                           value={campo.unidad || ''}
                           onChange={(e) => updateField(campo.id, { unidad: e.target.value })}
                           placeholder="ej. kg/cm²"
+                          disabled={readOnly}
                         />
                         <Input
                           label="Mínimo"
@@ -417,6 +445,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                           value={campo.limiteMin || ''}
                           onChange={(e) => updateField(campo.id, { limiteMin: parseFloat(e.target.value) })}
                           placeholder="Opcional"
+                          disabled={readOnly}
                         />
                         <Input
                           label="Máximo"
@@ -424,6 +453,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                           value={campo.limiteMax || ''}
                           onChange={(e) => updateField(campo.id, { limiteMax: parseFloat(e.target.value) })}
                           placeholder="Opcional"
+                          disabled={readOnly}
                         />
                       </div>
                     )}
@@ -435,6 +465,7 @@ export function NormaEditor({ initialData, onSave, onCancel }: NormaEditorProps)
                           value={campo.opciones?.join(', ') || ''}
                           onChange={(e) => updateField(campo.id, { opciones: e.target.value.split(',').map(s => s.trim()) })}
                           placeholder="ej. Opción 1, Opción 2"
+                          disabled={readOnly}
                         />
                       </div>
                     )}

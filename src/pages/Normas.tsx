@@ -146,6 +146,7 @@ export function Normas() {
         initialData={selectedNorma}
         onSave={handleSave}
         onCancel={handleCancel}
+        readOnly={true}
       />
     );
   }
@@ -156,18 +157,13 @@ export function Normas() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Gestión de Normas</h1>
           <p className="text-muted-foreground mt-1">
-            Administra las normas técnicas, plantillas y configuraciones de ensayo.
+            Visualiza las normas técnicas y configuraciones de ensayo.
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExport} title="Exportar Normas">
             <Download className="mr-2 h-4 w-4" />
             <span className="hidden md:inline">Exportar</span>
-          </Button>
-          <Button onClick={handleCreate} id="btn-new-norma">
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden md:inline">Nueva Norma</span>
-            <span className="md:hidden">Nueva</span>
           </Button>
         </div>
       </div>
