@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { BarChart2, FileText, Shield, ArrowRight, CheckCircle2, Lock, Server, Users, HelpCircle, Menu, X, LayoutDashboard } from 'lucide-react';
+import { 
+  BarChart2, 
+  FileText, 
+  Shield, 
+  ArrowRight, 
+  CheckCircle2, 
+  Lock, 
+  Server, 
+  Users, 
+  HelpCircle, 
+  Menu, 
+  X, 
+  LayoutDashboard,
+  Package,
+  Smartphone,
+  Zap,
+  Briefcase
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
@@ -87,14 +104,14 @@ export default function Home() {
       <section className="relative overflow-hidden pt-16 pb-24 lg:pt-32 lg:pb-40 min-h-screen flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary/10 text-primary hover:bg-primary/20 mb-6">
-            ✨ Nueva versión 2.0 disponible
+            ✨ Gestión Integral de Laboratorios 2.0
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-foreground mb-6">
-            Gestión Inteligente para <br />
-            <span className="text-primary">Laboratorios de Construcción</span>
+            Control Total de <span className="text-primary">Calidad, Inventario</span> <br />
+            y Procesos de Obra
           </h1>
           <p className="mt-4 text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            La plataforma integral que digitaliza tus procesos de calidad. Desde la recepción de muestras hasta la emisión de certificados certificados, todo en la nube.
+            La plataforma todo en uno que digitaliza tu laboratorio. Gestiona muestras, controla tu inventario de equipos y reactivos, y emite certificados normativos en segundos.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link to="/register">
@@ -110,15 +127,18 @@ export default function Home() {
             </Link>
           </div>
           
-          <div className="mt-12 flex justify-center items-center gap-8 text-sm text-muted-foreground grayscale opacity-70">
+          <div className="mt-12 flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm text-muted-foreground grayscale opacity-70">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Normas NMX
+              <CheckCircle2 className="h-4 w-4" /> Normas NMX / ASTM
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Normas ASTM
+              <CheckCircle2 className="h-4 w-4" /> Control de Inventarios
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Normas ACI
+              <CheckCircle2 className="h-4 w-4" /> App Móvil Offline
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" /> Roles y Permisos
             </div>
           </div>
         </div>
@@ -131,8 +151,91 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Modules Highlight Section */}
+      <section className="py-20 bg-muted/30 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-foreground">Todo tu Laboratorio en una Sola Plataforma</h2>
+            <p className="mt-4 text-lg text-muted-foreground">Deja de usar múltiples hojas de cálculo desconectadas.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ModuleCard 
+              icon={<Briefcase className="h-6 w-6 text-blue-500" />}
+              title="Gestión de Proyectos"
+              description="Administra múltiples obras, asigna personal y vincula normas específicas a cada proyecto."
+              color="bg-blue-500/10"
+            />
+            <ModuleCard 
+              icon={<Package className="h-6 w-6 text-orange-500" />}
+              title="Inventarios y Equipos"
+              description="Controla stock de reactivos, calibración de prensas y ubicación de moldes en tiempo real."
+              color="bg-orange-500/10"
+            />
+             <ModuleCard 
+              icon={<FileText className="h-6 w-6 text-green-500" />}
+              title="Normas Personalizables"
+              description="Crea y edita tus propias normas (Locales o Privadas) o usa las plantillas NMX/ASTM incluidas."
+              color="bg-green-500/10"
+            />
+            <ModuleCard 
+              icon={<Users className="h-6 w-6 text-purple-500" />}
+              title="Roles y Accesos"
+              description="Perfiles específicos para Técnicos, Residentes, Gerentes y Administradores."
+              color="bg-purple-500/10"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions by Role Section */}
+      <section className="py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-foreground">Una Solución, Múltiples Perspectivas</h2>
+                <p className="mt-4 text-lg text-muted-foreground">Herramientas especializadas para cada miembro de tu equipo.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <RoleCard 
+                    title="Gerentes de Calidad"
+                    features={[
+                        "Dashboard de KPIs en tiempo real",
+                        "Control de facturación y rentabilidad",
+                        "Supervisión remota de técnicos",
+                        "Auditoría de logs de actividad"
+                    ]}
+                    image="/images/role-manager.jpg"
+                    fallback="/images/role-manager.jpg"
+                />
+                 <RoleCard 
+                    title="Técnicos de Campo"
+                    features={[
+                        "App móvil con modo offline",
+                        "Cálculos automáticos en sitio",
+                        "Validación inmediata de errores",
+                        "Escaneo de códigos QR"
+                    ]}
+                    image="/images/role-tech.jpg"
+                    fallback="/images/role-tech.jpg"
+                />
+                 <RoleCard 
+                    title="Residentes de Obra"
+                    features={[
+                        "Consulta de informes 24/7",
+                        "Notificaciones de resultados críticos",
+                        "Historial completo de la obra",
+                        "Solicitud de servicios desde app"
+                    ]}
+                    image="/images/role-resident.jpg"
+                    fallback="/images/role-resident.jpg"
+                />
+            </div>
+        </div>
+      </section>
+
       {/* How it Works Section */}
-      <section className="py-20 bg-background border-t border-border">
+      <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-foreground">Flujo de Trabajo Simplificado</h2>
@@ -167,6 +270,54 @@ export default function Home() {
               <p className="text-muted-foreground">El sistema calcula resultados y genera el certificado PDF listo para firmar y enviar al cliente.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Standards Library Section */}
+      <section className="py-20 bg-muted/30 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-foreground">Biblioteca Normativa Incluida</h2>
+                <p className="mt-4 text-lg text-muted-foreground">Soportamos las normas más utilizadas en la industria de la construcción.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <StandardGroup title="Concreto Hidráulico">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-C-414 (Cabecería)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-C-155 (Especificaciones)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-C-083 (Resistencia)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> ASTM C39 / C143</li>
+                    </ul>
+                </StandardGroup>
+                <StandardGroup title="Terracerías y Suelos">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-C-416 (Proctor)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> ASTM D1557 (Compactación)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> ASTM D1883 (CBR)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Límites de Atterberg</li>
+                    </ul>
+                </StandardGroup>
+                 <StandardGroup title="Aceros de Refuerzo">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-B-172 (Tensión)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> NMX-B-113 (Doblado)</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> ASTM A615 / A706</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Corrugaciones</li>
+                    </ul>
+                </StandardGroup>
+                 <StandardGroup title="Mezclas Asfálticas">
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Protocolo AMAAC</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Contenido de Asfalto</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Granulometría</li>
+                        <li className="flex items-center"><CheckCircle2 className="h-4 w-4 mr-2 text-green-500"/> Marshall / Superpave</li>
+                    </ul>
+                </StandardGroup>
+            </div>
+            <div className="mt-12 text-center">
+                 <p className="text-sm text-muted-foreground">¿No ves tu norma? <span className="font-semibold text-primary">Nuestro motor de normas permite crear cualquier especificación personalizada.</span></p>
+            </div>
         </div>
       </section>
 
@@ -266,9 +417,9 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard 
-              icon={<FileText className="h-8 w-8 text-primary" />}
-              title="Normas Digitales"
-              description="Plantillas pre-cargadas para normas NMX y ACI. Validación automática de resultados contra límites especificados."
+              icon={<Smartphone className="h-8 w-8 text-primary" />}
+              title="Modo Offline"
+              description="Trabaja sin conexión a internet en obra. Los datos se sincronizan automáticamente cuando recuperas la señal."
             />
             <FeatureCard 
               icon={<Shield className="h-8 w-8 text-primary" />}
@@ -280,10 +431,115 @@ export default function Home() {
               title="Informes Automáticos"
               description="Genera certificados de calidad en PDF con un solo clic. Firmas digitales y formatos personalizables."
             />
+             <FeatureCard 
+              icon={<Zap className="h-8 w-8 text-primary" />}
+              title="Alertas en Tiempo Real"
+              description="Recibe notificaciones inmediatas sobre resultados fuera de norma o muestras pendientes de ensayo."
+            />
+             <FeatureCard 
+              icon={<FileText className="h-8 w-8 text-primary" />}
+              title="Biblioteca Normativa"
+              description="Acceso a normas actualizadas. Configura límites de aceptación y rechazo automáticos."
+            />
+             <FeatureCard 
+              icon={<Users className="h-8 w-8 text-primary" />}
+              title="Trabajo Colaborativo"
+              description="Múltiples usuarios trabajando simultáneamente en los mismos proyectos sin conflictos de datos."
+            />
           </div>
         </div>
       </section>
 
+      {/* Tech Specs Section */}
+      <section className="py-20 bg-muted/30 border-y border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-foreground">Ficha Técnica Completa</h2>
+            <p className="mt-4 text-lg text-muted-foreground">Tecnología confiable y preparada para operación en campo.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <BarChart2 className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Arquitectura</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>React 18 + Vite 6 + TypeScript</li>
+                <li>UI con TailwindCSS</li>
+                <li>Estado local con Zustand</li>
+                <li>Ruteo con React Router 7</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <Server className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Backend</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>Supabase Auth + Postgres</li>
+                <li>Políticas RLS por rol y permisos</li>
+                <li>Logs y notificaciones en tiempo real</li>
+                <li>Migraciones SQL versionadas</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <Shield className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Seguridad</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>SSL/TLS y encriptación de datos</li>
+                <li>Control granular de permisos</li>
+                <li>Auditoría de actividad de usuarios</li>
+                <li>Respaldos automáticos</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <Smartphone className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Móvil</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>Modo offline para obra</li>
+                <li>Sincronización automática</li>
+                <li>Lectura de códigos QR</li>
+                <li>Interfaz optimizada para tablets</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <Package className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Inventarios</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>Equipos, reactivos y materiales</li>
+                <li>Estados operativos y mantenimiento</li>
+                <li>Ubicación por proyecto</li>
+                <li>Alertas por mínimo en stock</li>
+              </ul>
+            </div>
+            
+            <div className="bg-card p-6 rounded-xl border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <FileText className="h-6 w-6 text-primary" />
+                <h3 className="text-lg font-bold text-foreground">Informes</h3>
+              </div>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>Certificados PDF personalizables</li>
+                <li>Plantillas por cliente o proyecto</li>
+                <li>Firmas digitales</li>
+                <li>Exportación a CSV/Excel</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+ 
       {/* FAQ Section */}
       <section className="py-20 bg-muted/30 border-t border-border">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -303,6 +559,10 @@ export default function Home() {
             <FaqItem 
               question="¿Qué pasa si pierdo mi conexión a internet?"
               answer="Nuestra aplicación guarda los datos localmente en tu dispositivo mientras trabajas. Una vez que recuperas la conexión, todo se sincroniza automáticamente con la nube."
+            />
+            <FaqItem 
+              question="¿Puedo personalizar los informes?"
+              answer="Sí, puedes configurar plantillas de certificados con tu propio logotipo, colores corporativos y formatos específicos."
             />
           </div>
         </div>
@@ -330,7 +590,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
-                <BarChart2 className="h-5 w-5 text-primary" />
+                <div className="bg-primary/10 p-1.5 rounded-md">
+                   <BarChart2 className="h-5 w-5 text-primary" />
+                </div>
                 <span className="font-bold text-foreground">ConstruLab SaaS</span>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -380,13 +642,62 @@ export default function Home() {
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
     <div className="bg-card p-8 rounded-xl border border-border hover:shadow-lg transition-shadow">
-      <div className="bg-background w-14 h-14 rounded-lg flex items-center justify-center mb-6 shadow-sm">
+      <div className="bg-background w-14 h-14 rounded-lg flex items-center justify-center mb-6 shadow-sm border border-border/50">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-foreground mb-3">{title}</h3>
       <p className="text-muted-foreground leading-relaxed">
         {description}
       </p>
+    </div>
+  );
+}
+
+function ModuleCard({ icon, title, description, color }: { icon: React.ReactNode, title: string, description: string, color: string }) {
+  return (
+    <div className="bg-card p-6 rounded-xl border border-border hover:border-primary/50 transition-colors group">
+      <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${color} group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+function RoleCard({ title, features, image, fallback }: { title: string, features: string[], image: string, fallback?: string }) {
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <div className="h-36 w-full overflow-hidden">
+        <img 
+          src={image} 
+          alt={title} 
+          className="w-full h-full object-cover" 
+          onError={(e) => { e.currentTarget.src = fallback || '/images/role-tech.jpg'; }}
+        />
+      </div>
+      <div className="p-6">
+        <h3 className="text-lg font-bold text-foreground mb-4">{title}</h3>
+        <ul className="space-y-2">
+          {features.map((f, idx) => (
+            <li key={idx} className="flex items-start text-sm text-muted-foreground">
+              <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 mr-2" />
+              <span>{f}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function StandardGroup({ title, children }: { title: string, children: React.ReactNode }) {
+  return (
+    <div className="bg-card p-6 rounded-xl border border-border">
+      <h3 className="text-lg font-bold text-foreground mb-3">{title}</h3>
+      {children}
     </div>
   );
 }
